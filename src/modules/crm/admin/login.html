@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Inflate Studio CRM — Login</title>
+<style>
+  :root {
+    --brand:      #2f6b62;
+    --brand-soft: #afccc6;
+    --brand-bg:   #eef5f3;
+    --gold:       #c79a3d;
+    --ink:        #1d2530;
+    --muted:      #5a6573;
+    --line:       #d8e2df;
+    --error:      #c0392b;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--brand-bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 32px rgba(0,0,0,.08);
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 380px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .logo-dot {
+    width: 14px; height: 14px;
+    background: var(--brand-soft);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(175,204,198,.3);
+  }
+  .logo-text { font-size: 13pt; font-weight: 700; color: var(--brand); letter-spacing: .05em; }
+  .logo-sub  { font-size: 9pt;  color: var(--muted); }
+  h1 { font-size: 18pt; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .subtitle { color: var(--muted); font-size: 10pt; margin-bottom: 28px; }
+  label {
+    display: block;
+    font-size: 9.5pt;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  input[type="email"],
+  input[type="password"] {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    font-size: 11pt;
+    color: var(--ink);
+    background: #fff;
+    transition: border-color .15s;
+    outline: none;
+    margin-bottom: 16px;
+  }
+  input:focus { border-color: var(--brand-soft); }
+  .btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--brand);
+    color: #fff;
+    font-size: 11pt;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .15s;
+    margin-top: 4px;
+  }
+  .btn:hover   { background: #245950; }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+  .error-box {
+    background: #fdf0ef;
+    border: 1px solid #f5c6c2;
+    color: var(--error);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 10pt;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <span class="logo-dot"></span>
+    <div>
+      <div class="logo-text">INFLATE STUDIO</div>
+      <div class="logo-sub">CRM Admin Panel</div>
+    </div>
+  </div>
+
+  <h1>Sign in</h1>
+  <p class="subtitle">Enter your admin credentials to continue.</p>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <form id="loginForm" autocomplete="on">
+    <label for="email">Email address</label>
+    <input type="email" id="email" name="email" placeholder="admin@inflatestudio.com" autocomplete="username" required />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required />
+
+    <button type="submit" class="btn" id="submitBtn">Sign in</button>
+  </form>
+</div>
+
+<script>
+  // If already logged in, skip to the app
+  if (localStorage.getItem('adminToken')) {
+    window.location.replace('/admin/index.html');
+  }
+
+  const form      = document.getElementById('loginForm');
+  const errorBox  = document.getElementById('errorBox');
+  const submitBtn = document.getElementById('submitBtn');
+
+  const showError = (msg) => {
+    errorBox.textContent = msg;
+    errorBox.style.display = 'block';
+  };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span>Signing in…';
+
+    const body = {
+      email:    document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value,
+    };
+
+    try {
+      const res  = await fetch('/api/crm/admin/auth/login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        showError(json.message || 'Login failed. Check your credentials.');
+      } else {
+        localStorage.setItem('adminToken', json.data.token);
+        localStorage.setItem('adminEmail', body.email);
+        window.location.replace('/admin/index.html');
+      }
+    } catch {
+      showError('Network error. Is the server running?');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign in';
+    }
+  });
+</script>
+</body>
+</html>

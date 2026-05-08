@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Inflate Studio CRM</title>
+<style>
+  :root {
+    --brand:      #2f6b62;
+    --brand-soft: #afccc6;
+    --brand-bg:   #eef5f3;
+    --gold:       #c79a3d;
+    --ink:        #1d2530;
+    --muted:      #5a6573;
+    --line:       #d8e2df;
+    --bg:         #f7faf9;
+    --white:      #ffffff;
+    --sidebar-w:  220px;
+
+    --status-new:       #2b6cb0;
+    --status-contacted: #c98a1f;
+    --status-booked:    #2f6b62;
+    --status-completed: #1f6f48;
+    --status-cancelled: #718096;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 10.5pt;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Layout ─────────────────────────────────────────────── */
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--white);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    z-index: 100;
+  }
+  .sidebar-header {
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .logo { display: flex; align-items: center; gap: 8px; }
+  .logo-dot {
+    width: 11px; height: 11px;
+    background: var(--brand-soft);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(175,204,198,.3);
+    flex-shrink: 0;
+  }
+  .logo-text { font-size: 11pt; font-weight: 700; color: var(--brand); letter-spacing: .04em; }
+  .logo-sub  { font-size: 8pt; color: var(--muted); margin-top: 1px; }
+
+  .nav { flex: 1; padding: 12px 10px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--muted);
+    font-weight: 500;
+    margin-bottom: 2px;
+    transition: background .12s, color .12s;
+    border: none; background: none; width: 100%; text-align: left; font-size: 10.5pt;
+  }
+  .nav-item:hover  { background: var(--brand-bg); color: var(--brand); }
+  .nav-item.active { background: var(--brand-bg); color: var(--brand); font-weight: 700; }
+  .nav-icon { font-size: 14px; width: 18px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 14px 18px;
+    border-top: 1px solid var(--line);
+    font-size: 9pt;
+    color: var(--muted);
+  }
+  .logout-btn {
+    background: none; border: none; color: var(--brand);
+    font-size: 9pt; font-weight: 600; cursor: pointer; padding: 0;
+  }
+  .logout-btn:hover { text-decoration: underline; }
+
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 28px 32px;
+    max-width: 1100px;
+  }
+
+  /* ── Topbar ─────────────────────────────────────────────── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-title { font-size: 18pt; font-weight: 700; color: var(--ink); }
+  .page-sub   { color: var(--muted); font-size: 10pt; margin-top: 2px; }
+
+  /* ── Filters / Controls ─────────────────────────────────── */
+  .controls {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 18px; flex-wrap: wrap;
+  }
+  select, input[type="text"], input[type="date"], textarea {
+    padding: 8px 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 7px;
+    font-size: 10pt;
+    color: var(--ink);
+    background: var(--white);
+    outline: none;
+    transition: border-color .12s;
+  }
+  select:focus, input:focus, textarea:focus { border-color: var(--brand-soft); }
+  .btn {
+    padding: 8px 16px;
+    background: var(--brand);
+    color: #fff;
+    font-size: 10pt;
+    font-weight: 600;
+    border: none; border-radius: 7px; cursor: pointer;
+    transition: background .12s;
+  }
+  .btn:hover   { background: #245950; }
+  .btn-ghost {
+    padding: 7px 14px;
+    background: none;
+    border: 1.5px solid var(--line);
+    border-radius: 7px;
+    font-size: 10pt; font-weight: 500;
+    color: var(--ink); cursor: pointer;
+    transition: background .12s;
+  }
+  .btn-ghost:hover { background: var(--brand-bg); }
+  .btn-sm { padding: 5px 11px; font-size: 9.5pt; }
+
+  /* ── Table ──────────────────────────────────────────────── */
+  .table-wrap { background: var(--white); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 10px 14px; text-align: left; vertical-align: top; }
+  th {
+    background: var(--brand-bg);
+    color: var(--brand);
+    font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    border-bottom: 1px solid var(--line);
+  }
+  td { border-bottom: 1px solid var(--line); font-size: 10pt; }
+  tr:last-child td { border-bottom: none; }
+  tr.clickable:hover td { background: #f4f9f8; cursor: pointer; }
+
+  /* ── Status badge ───────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    padding: 3px 9px; border-radius: 999px;
+    font-size: 8.5pt; font-weight: 700;
+    letter-spacing: .04em; text-transform: capitalize;
+  }
+  .badge-new       { background: #e8f0fb; color: var(--status-new); }
+  .badge-contacted { background: #fdf2dd; color: var(--status-contacted); }
+  .badge-booked    { background: var(--brand-bg); color: var(--status-booked); }
+  .badge-completed { background: #e8f5ee; color: var(--status-completed); }
+  .badge-cancelled { background: #f1f3f5; color: var(--status-cancelled); }
+
+  /* ── Cards ──────────────────────────────────────────────── */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+  .card h3 { font-size: 12pt; font-weight: 700; color: var(--ink); margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .field label { font-size: 8.5pt; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 3px; }
+  .field .val  { font-size: 10.5pt; color: var(--ink); }
+
+  /* ── Notes ──────────────────────────────────────────────── */
+  .note-item {
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 7px;
+    margin-bottom: 8px; background: var(--bg);
+  }
+  .note-item .note-meta { font-size: 8.5pt; color: var(--muted); margin-bottom: 4px; }
+  .note-item .note-text { font-size: 10pt; }
+  .add-note-form { display: flex; gap: 8px; margin-top: 10px; }
+  .add-note-form textarea { flex: 1; resize: vertical; min-height: 60px; }
+
+  /* ── Photos ─────────────────────────────────────────────── */
+  .photo-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .photo-thumb {
+    width: 90px; height: 90px; object-fit: cover;
+    border-radius: 8px; border: 1px solid var(--line);
+    cursor: pointer;
+  }
+
+  /* ── Pagination ─────────────────────────────────────────── */
+  .pagination { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+  .page-info  { color: var(--muted); font-size: 9.5pt; }
+
+  /* ── Empty / Loading / Error ────────────────────────────── */
+  .empty { padding: 40px; text-align: center; color: var(--muted); }
+  .loading { padding: 40px; text-align: center; color: var(--muted); }
+  .spinner {
+    display: inline-block; width: 20px; height: 20px;
+    border: 2px solid var(--line); border-top-color: var(--brand);
+    border-radius: 50%; animation: spin .6s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .err-box {
+    background: #fdf0ef; border: 1px solid #f5c6c2; color: #c0392b;
+    border-radius: 7px; padding: 10px 14px; margin-bottom: 14px; font-size: 10pt;
+  }
+
+  /* ── Back link ──────────────────────────────────────────── */
+  .back-link { font-size: 10pt; color: var(--brand); cursor: pointer; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 4px; }
+  .back-link:hover { text-decoration: underline; }
+
+  #content { min-height: 200px; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- ── Sidebar ── -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-dot"></span>
+        <div>
+          <div class="logo-text">INFLATE STUDIO</div>
+          <div class="logo-sub">CRM</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="nav-item active" id="nav-consultations" onclick="navigate('consultations')">
+        <span class="nav-icon">📋</span> Consultations
+      </button>
+      <button class="nav-item" id="nav-customers" onclick="navigate('customers')">
+        <span class="nav-icon">👥</span> Customers
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <div id="adminEmailDisplay" style="margin-bottom:6px;"></div>
+      <button class="logout-btn" onclick="logout()">Sign out</button>
+    </div>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main class="main">
+    <div id="content"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+  </main>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  State & Auth
+// ════════════════════════════════════════════════════════
+const TOKEN = localStorage.getItem('adminToken');
+const EMAIL = localStorage.getItem('adminEmail') || '';
+
+// Admin API lives under /api/crm in the unified backend. Existing call sites
+// pass paths like "/admin/customers" — we prefix them here in one place.
+const API_BASE = '/api/crm';
+
+if (!TOKEN) {
+  window.location.replace('/admin/login.html');
+}
+
+document.getElementById('adminEmailDisplay').textContent = EMAIL;
+
+const api = async (path, opts = {}) => {
+  const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+  const res = await fetch(url, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${TOKEN}`,
+      ...(opts.headers || {}),
+    },
+  });
+  if (res.status === 401) {
+    localStorage.removeItem('adminToken');
+    window.location.replace('/admin/login.html');
+    return null;
+  }
+  return res.json();
+};
+
+const logout = () => {
+  localStorage.clear();
+  window.location.replace('/admin/login.html');
+};
+
+// ════════════════════════════════════════════════════════
+//  Router
+// ════════════════════════════════════════════════════════
+const content = document.getElementById('content');
+
+const setContent = (html) => { content.innerHTML = html; };
+const loading    = ()     => setContent('<div class="loading"><span class="spinner"></span>Loading…</div>');
+
+const setActiveNav = (section) => {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById(`nav-${section}`);
+  if (el) el.classList.add('active');
+};
+
+function navigate(section, ...args) {
+  const hash = args.length ? `#/${section}/${args.join('/')}` : `#/${section}`;
+  window.location.hash = hash;
+}
+
+const ROUTES = [
+  [/^#\/consultations\/([^/]+)$/,   (_, id) => renderConsultationDetail(id)],
+  [/^#\/consultations$/,             ()      => renderConsultationsList()],
+  [/^#\/customers\/([^/]+)$/,       (_, id) => renderCustomerDetail(id)],
+  [/^#\/customers$/,                 ()      => renderCustomersList()],
+];
+
+const router = () => {
+  const hash = window.location.hash || '#/consultations';
+  for (const [re, handler] of ROUTES) {
+    const m = hash.match(re);
+    if (m) { handler(...m); return; }
+  }
+  renderConsultationsList();
+};
+
+window.addEventListener('hashchange', router);
+window.addEventListener('DOMContentLoaded', router);
+
+// ════════════════════════════════════════════════════════
+//  Helpers
+// ════════════════════════════════════════════════════════
+const fmt = {
+  date: (d) => d ? new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) : '—',
+  datetime: (d) => d ? new Date(d).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—',
+  type: (t) => ({ phone:'Phone', virtual:'Virtual', in_person:'In-Person' }[t] || t || '—'),
+  usd: (n) => n != null ? `$${n}` : '—',
+  dur: (n) => n ? `${n} min` : '—',
+};
+
+const badge = (status) =>
+  `<span class="badge badge-${status}">${status}</span>`;
+
+const errBox = (msg) => `<div class="err-box">${msg}</div>`;
+
+// ════════════════════════════════════════════════════════
+//  Consultations List
+// ════════════════════════════════════════════════════════
+let cPage = 1, cStatus = '', cFrom = '', cTo = '';
+
+async function renderConsultationsList(page = 1) {
+  setActiveNav('consultations');
+  cPage = page;
+  loading();
+
+  const params = new URLSearchParams({ page, limit: 20 });
+  if (cStatus) params.set('status', cStatus);
+  if (cFrom)   params.set('from', cFrom);
+  if (cTo)     params.set('to', cTo);
+
+  const json = await api(`/admin/consultations?${params}`);
+  if (!json) return;
+
+  const { data = [], pagination = {} } = json;
+
+  const rows = data.length
+    ? data.map(c => `
+        <tr class="clickable" onclick="navigate('consultations','${c._id}')">
+          <td><span class="mono" style="font-size:9pt;color:var(--muted)">${c._id.slice(-6)}</span></td>
+          <td>${badge(c.status)}</td>
+          <td>${fmt.type(c.type)}</td>
+          <td>${c.shopifyCustomerId || '—'}</td>
+          <td>${fmt.date(c.scheduledDate)}</td>
+          <td>${fmt.usd(c.price)}</td>
+          <td>${fmt.date(c.createdAt)}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="7"><div class="empty">No consultations found.</div></td></tr>`;
+
+  const pag = pagination.pages > 1 ? `
+    <div class="pagination">
+      <button class="btn-ghost btn-sm" onclick="renderConsultationsList(${page-1})" ${page<=1?'disabled':''}>← Prev</button>
+      <span class="page-info">Page ${page} of ${pagination.pages} &nbsp;·&nbsp; ${pagination.total} total</span>
+      <button class="btn-ghost btn-sm" onclick="renderConsultationsList(${page+1})" ${page>=pagination.pages?'disabled':''}>Next →</button>
+    </div>` : '';
+
+  setContent(`
+    <div class="topbar">
+      <div><div class="page-title">Consultations</div><div class="page-sub">${pagination.total ?? 0} total records</div></div>
+    </div>
+    <div class="controls">
+      <select id="fStatus" onchange="cStatus=this.value;renderConsultationsList(1)">
+        <option value="">All statuses</option>
+        <option value="new" ${cStatus==='new'?'selected':''}>New</option>
+        <option value="contacted" ${cStatus==='contacted'?'selected':''}>Contacted</option>
+        <option value="booked" ${cStatus==='booked'?'selected':''}>Booked</option>
+        <option value="completed" ${cStatus==='completed'?'selected':''}>Completed</option>
+        <option value="cancelled" ${cStatus==='cancelled'?'selected':''}>Cancelled</option>
+      </select>
+      <input type="date" id="fFrom" value="${cFrom}" placeholder="From" onchange="cFrom=this.value;renderConsultationsList(1)" />
+      <input type="date" id="fTo"   value="${cTo}"   placeholder="To"   onchange="cTo=this.value;renderConsultationsList(1)" />
+      <button class="btn-ghost btn-sm" onclick="cStatus='';cFrom='';cTo='';renderConsultationsList(1)">Clear</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>ID</th><th>Status</th><th>Type</th><th>Customer ID</th><th>Scheduled</th><th>Price</th><th>Created</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    ${pag}
+  `);
+}
+
+// ════════════════════════════════════════════════════════
+//  Consultation Detail
+// ════════════════════════════════════════════════════════
+async function renderConsultationDetail(id) {
+  setActiveNav('consultations');
+  loading();
+
+  const json = await api(`/admin/consultations/${id}`);
+  if (!json) return;
+  if (json.statusCode >= 400) { setContent(errBox(json.message)); return; }
+
+  const c = json.data;
+  const i = c.intake || {};
+
+  const photosHtml = (i.inspirationPics || []).length
+    ? `<div class="photo-grid">${(i.inspirationPics).map(u=>
+        `<a href="${u}" target="_blank"><img class="photo-thumb" src="${u}" onerror="this.style.display='none'" /></a>`
+      ).join('')}</div>`
+    : '<span style="color:var(--muted)">None uploaded</span>';
+
+  const notesHtml = (c.internalNotes || []).length
+    ? c.internalNotes.map(n => `
+        <div class="note-item">
+          <div class="note-meta">${n.addedBy} · ${fmt.datetime(n.addedAt)}</div>
+          <div class="note-text">${escHtml(n.text)}</div>
+        </div>`).join('')
+    : '<p style="color:var(--muted);font-size:10pt;">No notes yet.</p>';
+
+  setContent(`
+    <span class="back-link" onclick="navigate('consultations')">← All consultations</span>
+    <div class="topbar">
+      <div>
+        <div class="page-title">Consultation <span style="color:var(--muted);font-size:13pt;">#${id.slice(-6)}</span></div>
+        <div class="page-sub">Created ${fmt.datetime(c.createdAt)}</div>
+      </div>
+      <div>${badge(c.status)}</div>
+    </div>
+
+    <!-- Update status + add note -->
+    <div class="card">
+      <h3>Update</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <label style="font-size:9pt;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">Status</label>
+          <select id="statusSel">
+            ${['new','contacted','booked','completed','cancelled'].map(s =>
+              `<option value="${s}" ${c.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`
+            ).join('')}
+          </select>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <label style="font-size:9pt;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">Internal note (optional)</label>
+          <input type="text" id="noteInput" placeholder="Add a note…" style="width:100%;" />
+        </div>
+        <button class="btn" onclick="saveConsultationUpdate('${id}')">Save</button>
+        <span id="saveMsg" style="font-size:9.5pt;color:var(--status-completed);display:none;">✓ Saved</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Schedule -->
+      <div class="card">
+        <h3>Schedule</h3>
+        <div class="grid-2">
+          <div class="field"><label>Type</label><div class="val">${fmt.type(c.type)}</div></div>
+          <div class="field"><label>Status</label><div class="val">${badge(c.status)}</div></div>
+          <div class="field"><label>Date</label><div class="val">${fmt.date(c.scheduledDate)}</div></div>
+          <div class="field"><label>Time</label><div class="val">${c.scheduledTime || '—'}</div></div>
+          <div class="field"><label>Duration</label><div class="val">${fmt.dur(c.duration)}</div></div>
+          <div class="field"><label>Price</label><div class="val">${fmt.usd(c.price)}</div></div>
+        </div>
+      </div>
+
+      <!-- Shopify -->
+      <div class="card">
+        <h3>Shopify</h3>
+        <div class="grid-2">
+          <div class="field"><label>Customer ID</label><div class="val">${c.shopifyCustomerId || '—'}</div></div>
+          <div class="field"><label>Order ID</label><div class="val">${c.shopifyOrderId || '—'}</div></div>
+          <div class="field"><label>Order #</label><div class="val">${c.shopifyOrderName || '—'}</div></div>
+        </div>
+        ${c.shopifyCustomerId ? `<div style="margin-top:10px;"><a href="#" onclick="navigate('customers','${c.shopifyCustomerId}');return false;" style="font-size:9.5pt;">View customer profile →</a></div>` : ''}
+      </div>
+    </div>
+
+    <!-- Event Intake -->
+    <div class="card">
+      <h3>Event Details</h3>
+      <div class="grid-3">
+        <div class="field"><label>Event Type</label><div class="val">${i.eventType || '—'}</div></div>
+        <div class="field"><label>Event Date</label><div class="val">${fmt.date(i.eventDate)}</div></div>
+        <div class="field"><label>Event Time</label><div class="val">${i.eventTime || '—'}</div></div>
+        <div class="field"><label>Venue</label><div class="val">${i.venueName || '—'}</div></div>
+        <div class="field"><label>Address</label><div class="val">${i.venueAddress || '—'}</div></div>
+        <div class="field"><label>Guest Count</label><div class="val">${i.guestCount ?? '—'}</div></div>
+        <div class="field"><label>Budget</label><div class="val">${i.budgetRange || '—'}</div></div>
+        <div class="field"><label>Color Palette</label><div class="val">${i.colorPalette || '—'}</div></div>
+        <div class="field"><label>Services</label><div class="val">${(i.services||[]).join(', ') || '—'}</div></div>
+      </div>
+      ${i.narrative ? `<div class="field" style="margin-top:12px;"><label>Narrative</label><div class="val" style="white-space:pre-wrap;">${escHtml(i.narrative)}</div></div>` : ''}
+      ${i.additionalNotes ? `<div class="field" style="margin-top:12px;"><label>Additional Notes</label><div class="val" style="white-space:pre-wrap;">${escHtml(i.additionalNotes)}</div></div>` : ''}
+    </div>
+
+    <!-- Inspiration Photos -->
+    <div class="card">
+      <h3>Inspiration Photos</h3>
+      ${photosHtml}
+    </div>
+
+    <!-- Internal Notes -->
+    <div class="card">
+      <h3>Internal Notes</h3>
+      <div id="notesList">${notesHtml}</div>
+    </div>
+  `);
+}
+
+window.saveConsultationUpdate = async (id) => {
+  const status = document.getElementById('statusSel').value;
+  const note   = document.getElementById('noteInput').value.trim();
+  const body   = {};
+  if (status) body.status = status;
+  if (note)   body.note   = note;
+
+  const json = await api(`/admin/consultations/${id}`, {
+    method: 'PATCH',
+    body:   JSON.stringify(body),
+  });
+  if (!json || json.statusCode >= 400) {
+    alert(json?.message || 'Save failed');
+    return;
+  }
+  const msg = document.getElementById('saveMsg');
+  msg.style.display = 'inline';
+  if (note) document.getElementById('noteInput').value = '';
+  setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  // Refresh notes list
+  if (note && json.data?.internalNotes) {
+    document.getElementById('notesList').innerHTML =
+      json.data.internalNotes.map(n => `
+        <div class="note-item">
+          <div class="note-meta">${n.addedBy} · ${fmt.datetime(n.addedAt)}</div>
+          <div class="note-text">${escHtml(n.text)}</div>
+        </div>`).join('');
+  }
+};
+
+// ════════════════════════════════════════════════════════
+//  Customers List
+// ════════════════════════════════════════════════════════
+let custPage = 1, custQ = '';
+
+async function renderCustomersList(page = 1) {
+  setActiveNav('customers');
+  custPage = page;
+  loading();
+
+  const params = new URLSearchParams({ page, limit: 20 });
+  if (custQ) params.set('q', custQ);
+
+  const json = await api(`/admin/customers?${params}`);
+  if (!json) return;
+
+  const { data = [], pagination = {} } = json;
+
+  const rows = data.length
+    ? data.map(c => `
+        <tr class="clickable" onclick="navigate('customers','${c._id}')">
+          <td><b>${escHtml((c.firstName||'') + ' ' + (c.lastName||'')).trim() || '—'}</b></td>
+          <td>${escHtml(c.email || '—')}</td>
+          <td>${c.phone || '—'}</td>
+          <td>${fmt.date(c.memberSince)}</td>
+          <td>${(c.tags||[]).map(t=>`<span class="badge badge-booked">${t}</span>`).join(' ') || '—'}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="5"><div class="empty">No customers found.</div></td></tr>`;
+
+  const pag = pagination.pages > 1 ? `
+    <div class="pagination">
+      <button class="btn-ghost btn-sm" onclick="renderCustomersList(${page-1})" ${page<=1?'disabled':''}>← Prev</button>
+      <span class="page-info">Page ${page} of ${pagination.pages} &nbsp;·&nbsp; ${pagination.total} total</span>
+      <button class="btn-ghost btn-sm" onclick="renderCustomersList(${page+1})" ${page>=pagination.pages?'disabled':''}>Next →</button>
+    </div>` : '';
+
+  setContent(`
+    <div class="topbar">
+      <div><div class="page-title">Customers</div><div class="page-sub">${pagination.total ?? 0} CRM profiles</div></div>
+    </div>
+    <div class="controls">
+      <input type="text" id="qInput" value="${escHtml(custQ)}" placeholder="Search by name, email, phone…"
+             onkeydown="if(event.key==='Enter'){custQ=this.value;renderCustomersList(1)}" style="min-width:260px;" />
+      <button class="btn" onclick="custQ=document.getElementById('qInput').value;renderCustomersList(1)">Search</button>
+      <button class="btn-ghost btn-sm" onclick="custQ='';document.getElementById('qInput').value='';renderCustomersList(1)">Clear</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Member Since</th><th>Tags</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    ${pag}
+  `);
+}
+
+// ════════════════════════════════════════════════════════
+//  Customer Detail
+// ════════════════════════════════════════════════════════
+async function renderCustomerDetail(id) {
+  setActiveNav('customers');
+  loading();
+
+  const json = await api(`/admin/customers/${id}`);
+  if (!json) return;
+  if (json.statusCode >= 400) { setContent(errBox(json.message)); return; }
+
+  const c     = json.data;
+  const cons  = c.consultations || [];
+
+  const notesHtml = (c.notes || []).length
+    ? c.notes.map(n => `
+        <div class="note-item">
+          <div class="note-meta">${n.addedBy} · ${fmt.datetime(n.addedAt)}</div>
+          <div class="note-text">${escHtml(n.text)}</div>
+        </div>`).join('')
+    : '<p style="color:var(--muted);font-size:10pt;">No notes yet.</p>';
+
+  const consRows = cons.length
+    ? cons.map(c => `
+        <tr class="clickable" onclick="navigate('consultations','${c._id}')">
+          <td>${fmt.type(c.type)}</td>
+          <td>${badge(c.status)}</td>
+          <td>${fmt.date(c.scheduledDate)}</td>
+          <td>${c.intake?.eventType || '—'}</td>
+          <td>${fmt.usd(c.price)}</td>
+          <td>${fmt.date(c.createdAt)}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="6"><div class="empty">No consultations on file.</div></td></tr>`;
+
+  setContent(`
+    <span class="back-link" onclick="navigate('customers')">← All customers</span>
+    <div class="topbar">
+      <div>
+        <div class="page-title">${escHtml((c.firstName||'') + ' ' + (c.lastName||'')).trim() || 'Customer'}</div>
+        <div class="page-sub">Shopify ID: ${c.shopifyCustomerId}</div>
+      </div>
+    </div>
+
+    <!-- Profile info -->
+    <div class="card">
+      <h3>Profile</h3>
+      <div class="grid-3">
+        <div class="field"><label>First Name</label><div class="val">${c.firstName || '—'}</div></div>
+        <div class="field"><label>Last Name</label><div class="val">${c.lastName || '—'}</div></div>
+        <div class="field"><label>Email</label><div class="val">${c.email || '—'}</div></div>
+        <div class="field"><label>Phone</label><div class="val">${c.phone || '—'}</div></div>
+        <div class="field"><label>Member Since</label><div class="val">${fmt.date(c.memberSince)}</div></div>
+        <div class="field"><label>Tags</label><div class="val">${(c.tags||[]).map(t=>`<span class="badge badge-booked">${escHtml(t)}</span>`).join(' ') || '—'}</div></div>
+      </div>
+    </div>
+
+    <!-- Edit tags + add note -->
+    <div class="card">
+      <h3>Actions</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="flex:1;min-width:200px;">
+          <label style="font-size:9pt;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">Tags (comma-separated)</label>
+          <input type="text" id="tagsInput" value="${(c.tags||[]).join(', ')}" placeholder="VIP, returning, event-client…" style="width:100%;" />
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <label style="font-size:9pt;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">Add internal note</label>
+          <input type="text" id="custNoteInput" placeholder="Note…" style="width:100%;" />
+        </div>
+        <button class="btn" onclick="saveCustomerUpdate('${c._id}')">Save</button>
+        <span id="custSaveMsg" style="font-size:9.5pt;color:var(--status-completed);display:none;">✓ Saved</span>
+      </div>
+    </div>
+
+    <!-- Customer notes -->
+    <div class="card">
+      <h3>Internal Notes</h3>
+      <div id="custNotesList">${notesHtml}</div>
+    </div>
+
+    <!-- Consultation history -->
+    <div class="card">
+      <h3>Consultation History (${cons.length})</h3>
+      <div class="table-wrap" style="margin:0;">
+        <table>
+          <thead><tr><th>Type</th><th>Status</th><th>Scheduled</th><th>Event Type</th><th>Price</th><th>Created</th></tr></thead>
+          <tbody>${consRows}</tbody>
+        </table>
+      </div>
+    </div>
+  `);
+}
+
+window.saveCustomerUpdate = async (id) => {
+  const tagsRaw = document.getElementById('tagsInput').value.trim();
+  const note    = document.getElementById('custNoteInput').value.trim();
+  const body    = {};
+
+  if (tagsRaw !== undefined) {
+    body.tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+  }
+  if (note) body.note = note;
+
+  const json = await api(`/admin/customers/${id}`, {
+    method: 'PATCH',
+    body:   JSON.stringify(body),
+  });
+  if (!json || json.statusCode >= 400) {
+    alert(json?.message || 'Save failed');
+    return;
+  }
+  const msg = document.getElementById('custSaveMsg');
+  msg.style.display = 'inline';
+  if (note) document.getElementById('custNoteInput').value = '';
+  setTimeout(() => { msg.style.display = 'none'; }, 3000);
+
+  if (note && json.data?.notes) {
+    document.getElementById('custNotesList').innerHTML =
+      json.data.notes.map(n => `
+        <div class="note-item">
+          <div class="note-meta">${n.addedBy} · ${fmt.datetime(n.addedAt)}</div>
+          <div class="note-text">${escHtml(n.text)}</div>
+        </div>`).join('');
+  }
+};
+
+// ════════════════════════════════════════════════════════
+//  Utilities
+// ════════════════════════════════════════════════════════
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>
