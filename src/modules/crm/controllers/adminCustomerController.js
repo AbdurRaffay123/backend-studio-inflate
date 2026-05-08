@@ -1,9 +1,12 @@
 'use strict';
 
+const { Types }       = require('mongoose');
 const Customer        = require('../models/Customer');
 const Consultation    = require('../models/Consultation');
 const customerService = require('../services/customerService');
 const { parsePagination, buildResponse } = require('../utils/paginate');
+
+const isMongoId = (id) => Types.ObjectId.isValid(id) && String(new Types.ObjectId(id)) === id;
 
 // GET /api/crm/admin/customers
 const list = async (req, res, next) => {
@@ -28,9 +31,14 @@ const list = async (req, res, next) => {
 };
 
 // GET /api/crm/admin/customers/:id
+// Accepts either a MongoDB ObjectId or a Shopify GID / shopifyCustomerId string.
 const getById = async (req, res, next) => {
   try {
-    const customer = await Customer.findById(req.params.id).lean();
+    const { id } = req.params;
+    const customer = isMongoId(id)
+      ? await Customer.findById(id).lean()
+      : await Customer.findOne({ shopifyCustomerId: id }).lean();
+
     if (!customer) {
       return res.status(404).json({ statusCode: 404, error: 'NotFound', message: 'Customer not found' });
     }

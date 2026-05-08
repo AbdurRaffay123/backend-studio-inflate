@@ -3,6 +3,7 @@
 const consultationService = require('../services/consultationService');
 const customerService     = require('../services/customerService');
 const { mapConsultationPayload, mapCustomerProfile } = require('../utils/payloadMappers');
+const logger              = require('../../../shared/utils/logger');
 
 // POST /api/crm/consultations
 const create = async (req, res, next) => {
@@ -13,7 +14,12 @@ const create = async (req, res, next) => {
 
     // Opportunistically keep the CRM customer record in sync without blocking the response
     if (customerProfile.shopifyCustomerId) {
-      customerService.upsertCustomer(customerProfile).catch(() => {});
+      customerService.upsertCustomer(customerProfile).catch((err) => {
+        logger.warn('CRM customer upsert failed (non-critical)', {
+          shopifyCustomerId: customerProfile.shopifyCustomerId,
+          err: err?.message,
+        });
+      });
     }
 
     return res.status(201).json({ data: consultation });

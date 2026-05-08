@@ -13,7 +13,7 @@ router.get('/', controller.list);
 
 router.get(
   '/:id',
-  [param('id').isMongoId()],
+  [param('id').notEmpty().withMessage('id is required')],
   validate,
   controller.getById
 );

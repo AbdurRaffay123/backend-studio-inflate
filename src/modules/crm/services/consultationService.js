@@ -7,7 +7,7 @@ const createConsultation = async (data) => {
 };
 
 const getConsultationById = async (id) => {
-  return Consultation.findById(id);
+  return Consultation.findById(id).lean();
 };
 
 const updateStatus = async (id, status) => {

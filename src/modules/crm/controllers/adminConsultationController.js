@@ -9,7 +9,8 @@ const list = async (req, res, next) => {
     const { page, limit, skip } = parsePagination(req.query);
 
     const filter = {};
-    if (req.query.status) filter.status = req.query.status;
+    if (req.query.status)            filter.status            = req.query.status;
+    if (req.query.shopifyCustomerId) filter.shopifyCustomerId = req.query.shopifyCustomerId;
     if (req.query.from || req.query.to) {
       filter.createdAt = {};
       if (req.query.from) filter.createdAt.$gte = new Date(req.query.from);

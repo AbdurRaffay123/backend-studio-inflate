@@ -15,6 +15,7 @@ router.get(
   '/',
   [
     query('status').optional().isIn(STATUSES),
+    query('shopifyCustomerId').optional().isString().trim(),
     query('from').optional().isISO8601(),
     query('to').optional().isISO8601(),
     query('page').optional().isInt({ min: 1 }),
