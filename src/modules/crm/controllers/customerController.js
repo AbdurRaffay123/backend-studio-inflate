@@ -2,11 +2,12 @@
 
 const customerService = require('../services/customerService');
 const Consultation    = require('../models/Consultation');
+const { mapCustomerProfile } = require('../utils/payloadMappers');
 
 // POST /api/crm/customers  (upsert)
 const upsert = async (req, res, next) => {
   try {
-    const customer = await customerService.upsertCustomer(req.body);
+    const customer = await customerService.upsertCustomer(mapCustomerProfile(req.body));
     return res.status(200).json({ data: customer });
   } catch (err) {
     next(err);

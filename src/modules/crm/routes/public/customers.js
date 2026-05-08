@@ -15,6 +15,10 @@ router.post(
     body('firstName').optional().isString().trim(),
     body('lastName').optional().isString().trim(),
     body('phone').optional().isString().trim(),
+    body('profilePictureUrl').optional().isString().trim(),
+    body('acceptsMarketing').optional().isBoolean(),
+    body('addresses').optional().isArray(),
+    body('defaultAddress').optional().isObject(),
   ],
   validate,
   controller.upsert

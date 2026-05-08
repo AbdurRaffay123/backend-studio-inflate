@@ -16,14 +16,27 @@ const MONGO_DUPLICATE_KEY = 11000;
  * the caller still gets the now-existing document.
  */
 const upsertCustomer = async (data) => {
-  const { shopifyCustomerId, email, firstName, lastName, phone } = data;
+  const {
+    shopifyCustomerId,
+    email,
+    firstName,
+    lastName,
+    phone,
+    profilePictureUrl,
+    addresses,
+    defaultAddress,
+    acceptsMarketing,
+  } = data;
 
-  const set = {
-    ...(email     && { email }),
-    ...(firstName && { firstName }),
-    ...(lastName  && { lastName }),
-    ...(phone     && { phone }),
-  };
+  const set = {};
+  if (email !== undefined) set.email = email;
+  if (firstName !== undefined) set.firstName = firstName;
+  if (lastName !== undefined) set.lastName = lastName;
+  if (phone !== undefined) set.phone = phone;
+  if (profilePictureUrl !== undefined) set.profilePictureUrl = profilePictureUrl;
+  if (addresses !== undefined) set.addresses = addresses;
+  if (defaultAddress !== undefined) set.defaultAddress = defaultAddress;
+  if (acceptsMarketing !== undefined) set.acceptsMarketing = acceptsMarketing;
 
   const update = {
     $set: set,

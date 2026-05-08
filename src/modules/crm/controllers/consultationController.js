@@ -2,21 +2,18 @@
 
 const consultationService = require('../services/consultationService');
 const customerService     = require('../services/customerService');
+const { mapConsultationPayload, mapCustomerProfile } = require('../utils/payloadMappers');
 
 // POST /api/crm/consultations
 const create = async (req, res, next) => {
   try {
-    const consultation = await consultationService.createConsultation(req.body);
+    const consultationPayload = mapConsultationPayload(req.body);
+    const customerProfile = mapCustomerProfile(req.body);
+    const consultation = await consultationService.createConsultation(consultationPayload);
 
     // Opportunistically keep the CRM customer record in sync without blocking the response
-    if (req.body.shopifyCustomerId) {
-      customerService.upsertCustomer({
-        shopifyCustomerId: req.body.shopifyCustomerId,
-        email:     req.body.email,
-        firstName: req.body.firstName,
-        lastName:  req.body.lastName,
-        phone:     req.body.phone,
-      }).catch(() => {});
+    if (customerProfile.shopifyCustomerId) {
+      customerService.upsertCustomer(customerProfile).catch(() => {});
     }
 
     return res.status(201).json({ data: consultation });

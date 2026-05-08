@@ -14,7 +14,20 @@ router.post(
   '/',
   [
     body('shopifyCustomerId').notEmpty().withMessage('shopifyCustomerId is required'),
-    body('type').isIn(TYPES).withMessage(`type must be one of: ${TYPES.join(', ')}`),
+    body('type')
+      .optional()
+      .isIn(TYPES)
+      .withMessage(`type must be one of: ${TYPES.join(', ')}`),
+    body('consultationType')
+      .optional()
+      .isIn(TYPES)
+      .withMessage(`consultationType must be one of: ${TYPES.join(', ')}`),
+    body().custom((value) => {
+      if (value?.type || value?.consultationType) {
+        return true;
+      }
+      throw new Error('type or consultationType is required');
+    }),
     body('email').optional().isEmail().normalizeEmail(),
     body('duration').optional().isIn([15, 30, 60]),
     body('price').optional().isIn([25, 50, 100]),
