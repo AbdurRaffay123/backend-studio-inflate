@@ -13,7 +13,6 @@
  *   /api/crm/admin/auth/login
  *   /api/crm/admin/consultations
  *   /api/crm/admin/customers
- *   /api/crm/admin/projects
  */
 
 const { Router } = require('express');
@@ -26,7 +25,6 @@ const publicCustomers     = require('./public/customers');
 const adminAuth           = require('./admin/auth');
 const adminConsultations  = require('./admin/consultations');
 const adminCustomers      = require('./admin/customers');
-const adminProjects       = require('./admin/projects');
 
 const router = Router();
 
@@ -63,6 +61,5 @@ router.use('/customers',     publicLimiter, apiKey, publicCustomers);
 router.use('/admin/auth',          loginLimiter, adminAuth);
 router.use('/admin/consultations', adminLimiter, adminConsultations);
 router.use('/admin/customers',     adminLimiter, adminCustomers);
-router.use('/admin/projects',      adminLimiter, adminProjects);
 
 module.exports = router;

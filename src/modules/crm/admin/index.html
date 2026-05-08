@@ -22,12 +22,6 @@
     --status-booked:    #2f6b62;
     --status-completed: #1f6f48;
     --status-cancelled: #718096;
-
-    --proj-pending:     #6b46c1;
-    --proj-in_progress: #c98a1f;
-    --proj-review:      #2b6cb0;
-    --proj-completed:   #1f6f48;
-    --proj-cancelled:   #718096;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -176,11 +170,6 @@
   .badge-completed  { background: #e8f5ee; color: var(--status-completed); }
   .badge-cancelled  { background: #f1f3f5; color: var(--status-cancelled); }
 
-  .badge-pending    { background: #f3e8ff; color: var(--proj-pending); }
-  .badge-in_progress{ background: #fdf2dd; color: var(--proj-in_progress); }
-  .badge-review     { background: #e8f0fb; color: var(--proj-review); }
-  /* .badge-completed and .badge-cancelled reused from consultation statuses */
-
   /* ── Cards ──────────────────────────────────────────────── */
   .card {
     background: var(--white);
@@ -260,9 +249,6 @@
       <button class="nav-item" id="nav-customers" onclick="navigate('customers')">
         <span class="nav-icon">👥</span> Customers
       </button>
-      <button class="nav-item" id="nav-projects" onclick="navigate('projects')">
-        <span class="nav-icon">🗂</span> Projects
-      </button>
     </div>
     <div class="sidebar-footer">
       <div id="adminEmailDisplay" style="margin-bottom:6px;"></div>
@@ -340,8 +326,6 @@ const ROUTES = [
   [/^#\/consultations$/,             ()      => renderConsultationsList()],
   [/^#\/customers\/([^/]+)$/,       (_, id) => renderCustomerDetail(id)],
   [/^#\/customers$/,                 ()      => renderCustomersList()],
-  [/^#\/projects\/([^/]+)$/,        (_, id) => renderProjectDetail(id)],
-  [/^#\/projects$/,                  ()      => renderProjectsList()],
 ];
 
 const router = () => {
@@ -764,211 +748,6 @@ window.saveCustomerUpdate = async (id) => {
       json.data.notes.map(n => `
         <div class="note-item">
           <div class="note-meta">${n.addedBy} · ${fmt.datetime(n.addedAt)}</div>
-          <div class="note-text">${escHtml(n.text)}</div>
-        </div>`).join('');
-  }
-};
-
-// ════════════════════════════════════════════════════════
-//  Projects List
-// ════════════════════════════════════════════════════════
-const PROJECT_STATUSES = ['pending', 'in_progress', 'review', 'completed', 'cancelled'];
-let projPage = 1, projStatus = '', projFrom = '', projTo = '';
-
-async function renderProjectsList(page = 1) {
-  setActiveNav('projects');
-  projPage = page;
-  loading();
-
-  const params = new URLSearchParams({ page, limit: 20 });
-  if (projStatus) params.set('status', projStatus);
-  if (projFrom)   params.set('from', projFrom);
-  if (projTo)     params.set('to', projTo);
-
-  const json = await api(`/admin/projects?${params}`);
-  if (!json) return;
-
-  const { data = [], pagination = {} } = json;
-
-  const rows = data.length
-    ? data.map(p => `
-        <tr class="clickable" onclick="navigate('projects','${p._id}')">
-          <td><span style="font-size:9pt;color:var(--muted)">${p._id.slice(-6)}</span></td>
-          <td>${badge(p.status)}</td>
-          <td>${escHtml(p.title) || '—'}</td>
-          <td>${escHtml(p.shopifyCustomerId) || '—'}</td>
-          <td>${fmt.date(p.eventDate)}</td>
-          <td>${fmt.usd(p.estimatedBudget)}</td>
-          <td>${fmt.date(p.createdAt)}</td>
-        </tr>`).join('')
-    : `<tr><td colspan="7"><div class="empty">No projects found.</div></td></tr>`;
-
-  const pag = pagination.pages > 1 ? `
-    <div class="pagination">
-      <button class="btn-ghost btn-sm" onclick="renderProjectsList(${page-1})" ${page<=1?'disabled':''}>← Prev</button>
-      <span class="page-info">Page ${page} of ${pagination.pages} &nbsp;·&nbsp; ${pagination.total} total</span>
-      <button class="btn-ghost btn-sm" onclick="renderProjectsList(${page+1})" ${page>=pagination.pages?'disabled':''}>Next →</button>
-    </div>` : '';
-
-  setContent(`
-    <div class="topbar">
-      <div><div class="page-title">Projects</div><div class="page-sub">${pagination.total ?? 0} total records</div></div>
-    </div>
-    <div class="controls">
-      <select id="pStatus" onchange="projStatus=this.value;renderProjectsList(1)">
-        <option value="">All statuses</option>
-        ${PROJECT_STATUSES.map(s => `<option value="${s}" ${projStatus===s?'selected':''}>${s.replace('_',' ')}</option>`).join('')}
-      </select>
-      <input type="date" id="pFrom" value="${projFrom}" placeholder="From" onchange="projFrom=this.value;renderProjectsList(1)" />
-      <input type="date" id="pTo"   value="${projTo}"   placeholder="To"   onchange="projTo=this.value;renderProjectsList(1)" />
-      <button class="btn-ghost btn-sm" onclick="projStatus='';projFrom='';projTo='';renderProjectsList(1)">Clear</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>ID</th><th>Status</th><th>Title</th><th>Customer ID</th><th>Event Date</th><th>Budget</th><th>Created</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-    ${pag}
-  `);
-}
-
-// ════════════════════════════════════════════════════════
-//  Project Detail
-// ════════════════════════════════════════════════════════
-async function renderProjectDetail(id) {
-  setActiveNav('projects');
-  loading();
-
-  const json = await api(`/admin/projects/${id}`);
-  if (!json) return;
-  if (json.statusCode >= 400) { setContent(errBox(json.message)); return; }
-
-  const p = json.data;
-
-  const deliverablesHtml = (p.deliverables || []).length
-    ? `<div style="display:flex;flex-direction:column;gap:8px;">${p.deliverables.map(d => `
-        <div style="padding:10px 12px;border:1px solid var(--line);border-radius:7px;background:var(--bg);">
-          <div style="font-weight:700;font-size:10.5pt;">${escHtml(d.title)}</div>
-          ${d.description ? `<div style="font-size:10pt;color:var(--muted);margin-top:3px;">${escHtml(d.description)}</div>` : ''}
-          ${d.fileUrl ? `<div style="margin-top:5px;"><a href="${escHtml(d.fileUrl)}" target="_blank" style="font-size:9.5pt;">Download file →</a></div>` : ''}
-          <div style="font-size:8.5pt;color:var(--muted);margin-top:4px;">${fmt.datetime(d.uploadedAt)}</div>
-        </div>`).join('')}</div>`
-    : '<p style="color:var(--muted);font-size:10pt;">No deliverables yet.</p>';
-
-  const notesHtml = (p.internalNotes || []).length
-    ? p.internalNotes.map(n => `
-        <div class="note-item">
-          <div class="note-meta">${escHtml(n.addedBy)} · ${fmt.datetime(n.addedAt)}</div>
-          <div class="note-text">${escHtml(n.text)}</div>
-        </div>`).join('')
-    : '<p style="color:var(--muted);font-size:10pt;">No notes yet.</p>';
-
-  setContent(`
-    <span class="back-link" onclick="navigate('projects')">← All projects</span>
-    <div class="topbar">
-      <div>
-        <div class="page-title">${escHtml(p.title) || 'Untitled Project'} <span style="color:var(--muted);font-size:13pt;">#${id.slice(-6)}</span></div>
-        <div class="page-sub">Created ${fmt.datetime(p.createdAt)}</div>
-      </div>
-      <div>${badge(p.status)}</div>
-    </div>
-
-    <!-- Update panel -->
-    <div class="card">
-      <h3>Update</h3>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-        <div>
-          <label style="font-size:9pt;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">Status</label>
-          <select id="projStatusSel">
-            ${PROJECT_STATUSES.map(s => `<option value="${s}" ${p.status===s?'selected':''}>${s.replace('_',' ')}</option>`).join('')}
-          </select>
-        </div>
-        <div style="flex:1;min-width:200px;">
-          <label style="font-size:9pt;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">Internal note (optional)</label>
-          <input type="text" id="projNoteInput" placeholder="Add a note…" style="width:100%;" />
-        </div>
-        <button class="btn" onclick="saveProjectUpdate('${id}')">Save</button>
-        <span id="projSaveMsg" style="font-size:9.5pt;color:var(--status-completed);display:none;">✓ Saved</span>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <!-- Project Info -->
-      <div class="card">
-        <h3>Details</h3>
-        <div class="grid-2">
-          <div class="field"><label>Status</label><div class="val">${badge(p.status)}</div></div>
-          <div class="field"><label>Customer ID</label><div class="val">
-            ${p.shopifyCustomerId
-              ? `<a href="#" onclick="navigate('customers','${escHtml(p.shopifyCustomerId)}');return false;">${escHtml(p.shopifyCustomerId)}</a>`
-              : '—'}
-          </div></div>
-          <div class="field"><label>Event Date</label><div class="val">${fmt.date(p.eventDate)}</div></div>
-          <div class="field"><label>Due Date</label><div class="val">${fmt.date(p.dueDate)}</div></div>
-          <div class="field"><label>Completed At</label><div class="val">${fmt.date(p.completedAt)}</div></div>
-          <div class="field"><label>Est. Budget</label><div class="val">${fmt.usd(p.estimatedBudget)}</div></div>
-          <div class="field"><label>Actual Cost</label><div class="val">${fmt.usd(p.actualCost)}</div></div>
-          <div class="field"><label>Tags</label><div class="val">${(p.tags||[]).map(t=>`<span class="badge badge-booked">${escHtml(t)}</span>`).join(' ') || '—'}</div></div>
-        </div>
-        ${p.description ? `<div class="field" style="margin-top:12px;"><label>Description</label><div class="val" style="white-space:pre-wrap;">${escHtml(p.description)}</div></div>` : ''}
-      </div>
-
-      <!-- Linked records -->
-      <div class="card">
-        <h3>Linked Records</h3>
-        <div class="grid-2">
-          ${p.consultationId
-            ? `<div class="field"><label>Consultation</label><div class="val"><a href="#" onclick="navigate('consultations','${p.consultationId}');return false;">#${String(p.consultationId).slice(-6)}</a></div></div>`
-            : '<div class="field"><label>Consultation</label><div class="val" style="color:var(--muted);">—</div></div>'}
-          ${p.assignedArtistId
-            ? `<div class="field"><label>Artist</label><div class="val">${String(p.assignedArtistId).slice(-6)}</div></div>`
-            : '<div class="field"><label>Artist</label><div class="val" style="color:var(--muted);">—</div></div>'}
-        </div>
-      </div>
-    </div>
-
-    <!-- Deliverables -->
-    <div class="card">
-      <h3>Deliverables (${(p.deliverables||[]).length})</h3>
-      ${deliverablesHtml}
-    </div>
-
-    <!-- Internal Notes -->
-    <div class="card">
-      <h3>Internal Notes</h3>
-      <div id="projNotesList">${notesHtml}</div>
-    </div>
-  `);
-}
-
-window.saveProjectUpdate = async (id) => {
-  const status = document.getElementById('projStatusSel').value;
-  const note   = document.getElementById('projNoteInput').value.trim();
-  const body   = {};
-  if (status) body.status = status;
-  if (note)   body.note   = note;
-
-  const json = await api(`/admin/projects/${id}`, {
-    method: 'PATCH',
-    body:   JSON.stringify(body),
-  });
-  if (!json || json.statusCode >= 400) {
-    alert(json?.message || 'Save failed');
-    return;
-  }
-  const msg = document.getElementById('projSaveMsg');
-  msg.style.display = 'inline';
-  if (note) document.getElementById('projNoteInput').value = '';
-  setTimeout(() => { msg.style.display = 'none'; }, 3000);
-
-  if (note && json.data?.internalNotes) {
-    document.getElementById('projNotesList').innerHTML =
-      json.data.internalNotes.map(n => `
-        <div class="note-item">
-          <div class="note-meta">${escHtml(n.addedBy)} · ${fmt.datetime(n.addedAt)}</div>
           <div class="note-text">${escHtml(n.text)}</div>
         </div>`).join('');
   }
