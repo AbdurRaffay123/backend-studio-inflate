@@ -31,6 +31,14 @@ function handleMulterUpload(req, res) {
 
 async function uploadFile(req, res) {
   try {
+    if (!BUCKET_NAME) {
+      return res.status(503).json({
+        success: false,
+        error:   'S3 not configured',
+        message: 'S3_BUCKET_NAME is not set on the server. Set it in the backend .env file.',
+      });
+    }
+
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
