@@ -13,7 +13,7 @@ function handleMulterUpload(req, res) {
       if (err.message === 'Only image files are allowed') {
         return res.status(400).json({
           error:   'Invalid file type',
-          message: 'Only image files (JPEG, PNG, GIF, WebP) are allowed',
+          message: 'Only image files (JPEG, PNG, GIF, WebP, HEIC) are allowed',
         });
       }
       logToFile('\n--- /api/apps/product-options/upload Multer Error ---');

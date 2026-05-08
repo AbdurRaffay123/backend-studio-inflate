@@ -8,6 +8,10 @@ const ALLOWED_IMAGE_MIMES = new Set([
   'image/png',
   'image/gif',
   'image/webp',
+  // iOS HEIC/HEIF — accepted here as a safety net; the mobile client normalises
+  // these to image/jpeg before sending, but some upload paths may not.
+  'image/heic',
+  'image/heif',
 ]);
 
 const upload = multer({
