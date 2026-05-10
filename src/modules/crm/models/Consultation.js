@@ -19,8 +19,16 @@ const intakeSchema = new Schema(
     eventType:        { type: String, default: '' },
     eventDate:        { type: Date   },
     eventTime:        { type: String, default: '' },
+    endDate:          { type: Date   },
+    endTime:          { type: String, default: '' },
     venueName:        { type: String, default: '' },
+    venueType:        { type: String, default: '' },
     venueAddress:     { type: String, default: '' },
+    setupLocation:    { type: String, default: '' },
+    setupDate:        { type: Date   },
+    setupTime:        { type: String, default: '' },
+    tearDownDate:     { type: Date   },
+    tearDownTime:     { type: String, default: '' },
     guestCount:       { type: Number },
     services:         { type: [String], default: [] },
     budgetRange:      { type: String, default: '' },
@@ -37,6 +45,11 @@ const consultationSchema = new Schema(
     shopifyCustomerId: { type: String, required: true, index: true },
     shopifyOrderId:    { type: String, default: null },
     shopifyOrderName:  { type: String, default: null },
+
+    // Contact snapshot at booking time (separate from the Customer doc, which can change later).
+    fullName: { type: String, default: '' },
+    email:    { type: String, default: '' },
+    phone:    { type: String, default: '' },
 
     status:   { type: String, enum: STATUSES, default: 'new', index: true },
     type:     { type: String, enum: TYPES,    required: true },

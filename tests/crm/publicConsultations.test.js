@@ -189,6 +189,72 @@ describe('POST /api/crm/consultations', () => {
       expect(res.status).toBe(201);
     }
   );
+
+  // ── New fields added 2026-05 ──────────────────────────────────────────────
+
+  it('persists the contact snapshot (fullName / email / phone) on the consultation', async () => {
+    await request(app)
+      .post('/api/crm/consultations')
+      .set(GOOD_HEADERS)
+      .send({
+        shopifyCustomerId: GID,
+        type:              'phone',
+        fullName:          'Jane Doe',
+        email:             'jane@example.com',
+        phone:             '+14155550123',
+      });
+
+    const payload = mockConsultationService.createConsultation.mock.calls[0][0];
+    expect(payload.fullName).toBe('Jane Doe');
+    expect(payload.email).toBe('jane@example.com');
+    expect(payload.phone).toBe('+14155550123');
+  });
+
+  it('forwards venueType, setup and tear-down fields into intake', async () => {
+    await request(app)
+      .post('/api/crm/consultations')
+      .set(GOOD_HEADERS)
+      .send({
+        shopifyCustomerId: GID,
+        type:              'in_person',
+        venueType:         'Residential',
+        venueAddress:      '742 Evergreen Terrace',
+        setupLocation:     'Backyard',
+        setupDate:         '2026-08-15T00:00:00.000Z',
+        setupTime:         '08:00',
+        tearDownDate:      '2026-08-15T23:00:00.000Z',
+        tearDownTime:      '23:00',
+        endDate:           '2026-08-16T00:00:00.000Z',
+        endTime:           '02:00',
+      });
+
+    const payload = mockConsultationService.createConsultation.mock.calls[0][0];
+    expect(payload.intake.venueType).toBe('Residential');
+    expect(payload.intake.venueAddress).toBe('742 Evergreen Terrace');
+    expect(payload.intake.setupLocation).toBe('Backyard');
+    expect(payload.intake.setupDate).toBeInstanceOf(Date);
+    expect(payload.intake.setupTime).toBe('08:00');
+    expect(payload.intake.tearDownDate).toBeInstanceOf(Date);
+    expect(payload.intake.tearDownTime).toBe('23:00');
+    expect(payload.intake.endDate).toBeInstanceOf(Date);
+    expect(payload.intake.endTime).toBe('02:00');
+  });
+
+  it('persists shopifyOrderName when supplied alongside shopifyOrderId', async () => {
+    await request(app)
+      .post('/api/crm/consultations')
+      .set(GOOD_HEADERS)
+      .send({
+        shopifyCustomerId: GID,
+        type:              'phone',
+        shopifyOrderId:    'gid://shopify/Order/9000',
+        shopifyOrderName:  '#1042',
+      });
+
+    const payload = mockConsultationService.createConsultation.mock.calls[0][0];
+    expect(payload.shopifyOrderId).toBe('gid://shopify/Order/9000');
+    expect(payload.shopifyOrderName).toBe('#1042');
+  });
 });
 
 // ── GET /:id ─────────────────────────────────────────────────────────────────

@@ -148,6 +148,123 @@ describe('mapConsultationPayload', () => {
     expect(result.shopifyOrderId).toBeNull();
     expect(result.shopifyOrderName).toBeNull();
   });
+
+  // ── New fields added 2026-05 ──────────────────────────────────────────────
+
+  it('maps the contact snapshot (fullName / email / phone) onto the consultation', () => {
+    const result = mapConsultationPayload({
+      shopifyCustomerId: GID,
+      type:              'phone',
+      fullName:          'Jane Doe',
+      email:             'jane@example.com',
+      phone:             '+14155550123',
+    });
+
+    expect(result.fullName).toBe('Jane Doe');
+    expect(result.email).toBe('jane@example.com');
+    expect(result.phone).toBe('+14155550123');
+  });
+
+  it('builds fullName from firstName + lastName when fullName is absent', () => {
+    const result = mapConsultationPayload({
+      shopifyCustomerId: GID,
+      type:              'phone',
+      firstName:         'Jane',
+      lastName:          'Doe',
+    });
+
+    expect(result.fullName).toBe('Jane Doe');
+  });
+
+  it('returns empty contact snapshot strings when nothing is provided', () => {
+    const result = mapConsultationPayload({ shopifyCustomerId: GID, type: 'phone' });
+    expect(result.fullName).toBe('');
+    expect(result.email).toBe('');
+    expect(result.phone).toBe('');
+  });
+
+  it('reads venueType from the flat mobile payload (was previously dropped)', () => {
+    const result = mapConsultationPayload({
+      shopifyCustomerId: GID,
+      type:              'phone',
+      venueType:         'Residential',
+    });
+    expect(result.intake.venueType).toBe('Residential');
+    // venueName must remain independently empty
+    expect(result.intake.venueName).toBe('');
+  });
+
+  it('keeps venueName and venueType independent — both can coexist', () => {
+    const result = mapConsultationPayload({
+      shopifyCustomerId: GID,
+      type:              'phone',
+      venueName:         'The Plaza',
+      venueType:         'Hotel ballroom',
+    });
+    expect(result.intake.venueName).toBe('The Plaza');
+    expect(result.intake.venueType).toBe('Hotel ballroom');
+  });
+
+  it('maps setup and tear-down dates / times', () => {
+    const result = mapConsultationPayload({
+      shopifyCustomerId: GID,
+      type:              'in_person',
+      setupLocation:     'Backyard, north corner',
+      setupDate:         '2026-08-15T00:00:00.000Z',
+      setupTime:         '08:00',
+      tearDownDate:      '2026-08-15T23:00:00.000Z',
+      tearDownTime:      '23:00',
+    });
+
+    expect(result.intake.setupLocation).toBe('Backyard, north corner');
+    expect(result.intake.setupDate).toBeInstanceOf(Date);
+    expect(result.intake.setupTime).toBe('08:00');
+    expect(result.intake.tearDownDate).toBeInstanceOf(Date);
+    expect(result.intake.tearDownTime).toBe('23:00');
+  });
+
+  it('maps endDate / endTime independently of eventDate / eventTime', () => {
+    const result = mapConsultationPayload({
+      shopifyCustomerId: GID,
+      type:              'in_person',
+      startDate:         '2026-08-15T00:00:00.000Z',
+      startTime:         '14:00',
+      endDate:           '2026-08-16T00:00:00.000Z',
+      endTime:           '02:00',
+    });
+
+    expect(result.intake.eventDate).toBeInstanceOf(Date);
+    expect(result.intake.eventTime).toBe('14:00');
+    expect(result.intake.endDate).toBeInstanceOf(Date);
+    expect(result.intake.endTime).toBe('02:00');
+  });
+
+  it('prefers nested intake fields over flat ones for the new schema fields too', () => {
+    const result = mapConsultationPayload({
+      shopifyCustomerId: GID,
+      type:              'in_person',
+      venueType:         'flat-wins-loss',
+      setupLocation:     'flat-wins-loss',
+      intake: {
+        venueType:     'Hotel ballroom',
+        setupLocation: 'Lobby',
+        setupTime:     '07:30',
+      },
+    });
+
+    expect(result.intake.venueType).toBe('Hotel ballroom');
+    expect(result.intake.setupLocation).toBe('Lobby');
+    expect(result.intake.setupTime).toBe('07:30');
+  });
+
+  it('passes through shopifyOrderName when supplied', () => {
+    const result = mapConsultationPayload({
+      shopifyCustomerId: GID,
+      type:              'phone',
+      shopifyOrderName:  '#1042',
+    });
+    expect(result.shopifyOrderName).toBe('#1042');
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

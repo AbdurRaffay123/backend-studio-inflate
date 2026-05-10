@@ -491,10 +491,10 @@ async function renderConsultationDetail(id) {
         <div class="grid-2">
           <div class="field"><label>Type</label><div class="val">${fmt.type(c.type)}</div></div>
           <div class="field"><label>Status</label><div class="val">${badge(c.status)}</div></div>
-          <div class="field"><label>Date</label><div class="val">${fmt.date(c.scheduledDate)}</div></div>
-          <div class="field"><label>Time</label><div class="val">${c.scheduledTime || '—'}</div></div>
+          <div class="field"><label>Consultation Date</label><div class="val">${fmt.date(c.scheduledDate)}</div></div>
+          <div class="field"><label>Consultation Time</label><div class="val">${c.scheduledTime || '—'}</div></div>
           <div class="field"><label>Duration</label><div class="val">${fmt.dur(c.duration)}</div></div>
-          <div class="field"><label>Price</label><div class="val">${fmt.usd(c.price)}</div></div>
+          <div class="field"><label>Fee</label><div class="val">${fmt.usd(c.price)}</div></div>
         </div>
       </div>
 
@@ -510,6 +510,16 @@ async function renderConsultationDetail(id) {
       </div>
     </div>
 
+    <!-- Contact (snapshot at booking time) -->
+    <div class="card">
+      <h3>Contact</h3>
+      <div class="grid-3">
+        <div class="field"><label>Full Name</label><div class="val">${escHtml(c.fullName) || '—'}</div></div>
+        <div class="field"><label>Email</label><div class="val">${escHtml(c.email) || '—'}</div></div>
+        <div class="field"><label>Phone</label><div class="val">${escHtml(c.phone) || '—'}</div></div>
+      </div>
+    </div>
+
     <!-- Event Intake -->
     <div class="card">
       <h3>Event Details</h3>
@@ -517,14 +527,22 @@ async function renderConsultationDetail(id) {
         <div class="field"><label>Event Type</label><div class="val">${i.eventType || '—'}</div></div>
         <div class="field"><label>Event Date</label><div class="val">${fmt.date(i.eventDate)}</div></div>
         <div class="field"><label>Event Time</label><div class="val">${i.eventTime || '—'}</div></div>
-        <div class="field"><label>Venue</label><div class="val">${i.venueName || '—'}</div></div>
-        <div class="field"><label>Address</label><div class="val">${i.venueAddress || '—'}</div></div>
+        <div class="field"><label>End Date</label><div class="val">${fmt.date(i.endDate)}</div></div>
+        <div class="field"><label>End Time</label><div class="val">${i.endTime || '—'}</div></div>
         <div class="field"><label>Guest Count</label><div class="val">${i.guestCount ?? '—'}</div></div>
+        <div class="field"><label>Venue Type</label><div class="val">${i.venueType || '—'}</div></div>
+        <div class="field"><label>Venue Name</label><div class="val">${i.venueName || '—'}</div></div>
+        <div class="field"><label>Venue Address</label><div class="val">${i.venueAddress || '—'}</div></div>
+        <div class="field"><label>Setup Location</label><div class="val">${i.setupLocation || '—'}</div></div>
+        <div class="field"><label>Setup Date</label><div class="val">${fmt.date(i.setupDate)}</div></div>
+        <div class="field"><label>Setup Time</label><div class="val">${i.setupTime || '—'}</div></div>
+        <div class="field"><label>Tear-Down Date</label><div class="val">${fmt.date(i.tearDownDate)}</div></div>
+        <div class="field"><label>Tear-Down Time</label><div class="val">${i.tearDownTime || '—'}</div></div>
         <div class="field"><label>Budget</label><div class="val">${i.budgetRange || '—'}</div></div>
         <div class="field"><label>Color Palette</label><div class="val">${i.colorPalette || '—'}</div></div>
-        <div class="field"><label>Services</label><div class="val">${(i.services||[]).join(', ') || '—'}</div></div>
       </div>
-      ${i.narrative ? `<div class="field" style="margin-top:12px;"><label>Narrative</label><div class="val" style="white-space:pre-wrap;">${escHtml(i.narrative)}</div></div>` : ''}
+      <div class="field" style="margin-top:12px;"><label>Services</label><div class="val">${(i.services||[]).join(', ') || '—'}</div></div>
+      ${i.narrative ? `<div class="field" style="margin-top:12px;"><label>Tell me more about your project</label><div class="val" style="white-space:pre-wrap;">${escHtml(i.narrative)}</div></div>` : ''}
       ${i.additionalNotes ? `<div class="field" style="margin-top:12px;"><label>Additional Notes</label><div class="val" style="white-space:pre-wrap;">${escHtml(i.additionalNotes)}</div></div>` : ''}
     </div>
 

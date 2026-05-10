@@ -8,7 +8,9 @@
     "dev": "nodemon index.js",
     "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch",
-    "generate:admin-hash": "node scripts/generate-admin-hash.js"
+    "generate:admin-hash": "node scripts/generate-admin-hash.js",
+    "seed:crm": "node scripts/seed-crm.js",
+    "seed:crm:reset": "node scripts/seed-crm.js -- --reset"
   },
   "engines": {
     "node": ">=18.17"

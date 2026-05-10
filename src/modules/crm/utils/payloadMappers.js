@@ -67,8 +67,16 @@ const mapConsultationPayload = (body = {}) => {
     eventType: normalizeString(intakeFromBody.eventType || body.eventType),
     eventDate: toDateOrUndefined(intakeFromBody.eventDate || body.eventDate || body.startDate),
     eventTime: normalizeString(intakeFromBody.eventTime || body.eventTime || body.startTime),
+    endDate: toDateOrUndefined(intakeFromBody.endDate || body.endDate),
+    endTime: normalizeString(intakeFromBody.endTime || body.endTime),
     venueName: normalizeString(intakeFromBody.venueName || body.venueName),
+    venueType: normalizeString(intakeFromBody.venueType || body.venueType),
     venueAddress: normalizeString(intakeFromBody.venueAddress || body.venueAddress),
+    setupLocation: normalizeString(intakeFromBody.setupLocation || body.setupLocation),
+    setupDate: toDateOrUndefined(intakeFromBody.setupDate || body.setupDate),
+    setupTime: normalizeString(intakeFromBody.setupTime || body.setupTime),
+    tearDownDate: toDateOrUndefined(intakeFromBody.tearDownDate || body.tearDownDate),
+    tearDownTime: normalizeString(intakeFromBody.tearDownTime || body.tearDownTime),
     guestCount:
       Number.isFinite(Number(intakeFromBody.guestCount ?? body.guestCount))
         ? Number(intakeFromBody.guestCount ?? body.guestCount)
@@ -85,10 +93,24 @@ const mapConsultationPayload = (body = {}) => {
     ),
   };
 
+  // Snapshot contact info on the consultation itself (Customer doc may drift later).
+  const fullNameParts = splitFullName(body.fullName);
+  const fullName =
+    normalizeString(body.fullName) ||
+    [
+      normalizeString(body.firstName) || fullNameParts.firstName,
+      normalizeString(body.lastName) || fullNameParts.lastName,
+    ]
+      .filter(Boolean)
+      .join(' ');
+
   return {
     shopifyCustomerId: normalizeString(body.shopifyCustomerId),
     shopifyOrderId: body.shopifyOrderId ?? null,
     shopifyOrderName: body.shopifyOrderName ?? null,
+    fullName,
+    email: normalizeString(body.email),
+    phone: normalizeString(body.phone),
     type: type || body.type,
     scheduledDate: toDateOrUndefined(body.scheduledDate),
     scheduledTime: normalizeString(body.scheduledTime),
