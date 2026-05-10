@@ -583,11 +583,9 @@ This means **existing storefront / mobile builds keep working** without
 changing `EXPO_PUBLIC_BACKEND_URL` or any storefront snippets. New
 integrations should prefer the canonical, namespaced paths.
 
-The CRM endpoints have **no** legacy compat layer — the standalone
-`inflate-studio-crm` service used `/api/customers`, `/api/consultations`,
-`/admin/auth/login`. When you migrate the mobile app to this monorepo,
-update its CRM client to use the new `/api/crm/*` prefix (the README has
-a one-line fix in `src/services/crmService.js`).
+The CRM endpoints have **no** legacy compat layer — they are only
+served under the canonical `/api/crm/*` prefix. The mobile app's
+`src/services/crmService.ts` already targets these paths.
 
 ---
 

@@ -131,10 +131,8 @@ EXPO_PUBLIC_CRM_API_KEY=<API_KEY>
 ```
 
 Both modules now run on the same host, so the two URLs can point at the
-same domain. The CRM client should hit `/api/crm/customers` and
-`/api/crm/consultations` — update `src/services/crmService.js` and
-`src/config/api.js` accordingly when migrating off the standalone CRM
-service.
+same domain. The mobile CRM client (`src/services/crmService.ts`) hits
+`/api/crm/customers` and `/api/crm/consultations` directly.
 
 ## Disabling a module
 
