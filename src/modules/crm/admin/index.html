@@ -127,6 +127,7 @@
   .controls-customers {
     align-items: flex-end;
     gap: 12px;
+    flex-wrap: nowrap;
   }
   .controls-customers #qInput {
     min-width: 780px;
@@ -137,6 +138,15 @@
   }
   .controls-customers .field label {
     margin-bottom: 4px;
+  }
+  .controls-customers .btn,
+  .controls-customers .btn-ghost {
+    min-width: 92px;
+    height: 38px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   select, input[type="text"], input[type="date"], textarea {
     padding: 9px 11px;
@@ -775,7 +785,7 @@ async function renderCustomersList(page = 1, opts = {}) {
         <input type="date" id="memberToInput" value="${escHtml(custMemberTo)}" onchange="custMemberTo=this.value;renderCustomersList(1)" title="Joined Before (inclusive)" />
       </div>
       <button class="btn" onclick="custQ=document.getElementById('qInput').value.trim();renderCustomersList(1)">Search</button>
-      <button class="btn-ghost btn-sm" onclick="custQ='';custMemberFrom='';custMemberTo='';document.getElementById('qInput').value='';renderCustomersList(1)">Clear</button>
+      <button class="btn-ghost" onclick="custQ='';custMemberFrom='';custMemberTo='';document.getElementById('qInput').value='';renderCustomersList(1)">Clear</button>
     </div>
     <div class="table-wrap">
       <table>
