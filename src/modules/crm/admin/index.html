@@ -124,6 +124,20 @@
     padding: 12px;
     box-shadow: var(--shadow-sm);
   }
+  .controls-customers {
+    align-items: flex-end;
+    gap: 12px;
+  }
+  .controls-customers #qInput {
+    min-width: 780px;
+    width: min(68vw, 980px);
+  }
+  .controls-customers .field {
+    margin-bottom: 0;
+  }
+  .controls-customers .field label {
+    margin-bottom: 4px;
+  }
   select, input[type="text"], input[type="date"], textarea {
     padding: 9px 11px;
     border: 1.5px solid var(--line);
@@ -748,12 +762,18 @@ async function renderCustomersList(page = 1, opts = {}) {
     <div class="topbar">
       <div><div class="page-title">Customers</div><div class="page-sub">${pagination.total ?? 0} CRM profiles</div></div>
     </div>
-    <div class="controls">
+    <div class="controls controls-customers">
       <input type="text" id="qInput" value="${escHtml(custQ)}" placeholder="Search by name, email, phone, or Shopify ID…"
              oninput="handleCustomerSearchInput(this.value)"
-             onkeydown="if(event.key==='Enter'){custQ=this.value.trim();renderCustomersList(1)}" style="min-width:260px;" />
-      <input type="date" id="memberFromInput" value="${escHtml(custMemberFrom)}" onchange="custMemberFrom=this.value;renderCustomersList(1)" title="Joined After (inclusive)" />
-      <input type="date" id="memberToInput" value="${escHtml(custMemberTo)}" onchange="custMemberTo=this.value;renderCustomersList(1)" title="Joined Before (inclusive)" />
+             onkeydown="if(event.key==='Enter'){custQ=this.value.trim();renderCustomersList(1)}" />
+      <div class="field" style="min-width:120px;">
+        <label>From</label>
+        <input type="date" id="memberFromInput" value="${escHtml(custMemberFrom)}" onchange="custMemberFrom=this.value;renderCustomersList(1)" title="Joined After (inclusive)" />
+      </div>
+      <div class="field" style="min-width:120px;">
+        <label>To</label>
+        <input type="date" id="memberToInput" value="${escHtml(custMemberTo)}" onchange="custMemberTo=this.value;renderCustomersList(1)" title="Joined Before (inclusive)" />
+      </div>
       <button class="btn" onclick="custQ=document.getElementById('qInput').value.trim();renderCustomersList(1)">Search</button>
       <button class="btn-ghost btn-sm" onclick="custQ='';custMemberFrom='';custMemberTo='';document.getElementById('qInput').value='';renderCustomersList(1)">Clear</button>
     </div>
