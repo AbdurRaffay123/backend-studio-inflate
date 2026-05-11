@@ -139,6 +139,9 @@
   .controls-customers .field label {
     margin-bottom: 4px;
   }
+  .controls-customers label[for="qInput"] {
+    margin-left: 4px;
+  }
   .controls-customers .btn,
   .controls-customers .btn-ghost {
     min-width: 92px;
@@ -879,8 +882,8 @@ async function renderCustomerDetail(id) {
   if (!json) return;
   if (json.statusCode >= 400) { setContent(errBox(json.message)); return; }
 
-  const c     = json.data;
-  const cons  = c.consultations || [];
+  const c = json.data;
+  const cons = c.consultations || [];
 
   const notesHtml = (c.notes || []).length
     ? c.notes.map(n => `
