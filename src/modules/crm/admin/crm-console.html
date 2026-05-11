@@ -376,7 +376,7 @@ async function renderConsultationsList(page = 1) {
   const cStatusFilterOptionsHtml = CONSULTATION_STATUS_OPTIONS.map((o) => {
     const active = o.value === cStatus ? ' is-active' : '';
     const dotMod = o.value ? o.value : 'all';
-    return `<li role="presentation"><button type="button" class="c-status-filter__opt${active}" role="option" data-value="${escHtml(o.value)}" onclick="pickConsultationsStatusFilter(${JSON.stringify(o.value)})"><span class="c-status-filter__dot c-status-filter__dot--${dotMod}" aria-hidden="true"></span><span class="c-status-filter__opt-label">${escHtml(o.label)}</span></button></li>`;
+    return `<li role="presentation"><button type="button" class="c-status-filter__opt${active}" role="option" data-value="${escHtml(o.value)}" onclick='pickConsultationsStatusFilter(${JSON.stringify(o.value)})'><span class="c-status-filter__dot c-status-filter__dot--${dotMod}" aria-hidden="true"></span><span class="c-status-filter__opt-label">${escHtml(o.label)}</span></button></li>`;
   }).join('');
 
   const rows = data.length
@@ -487,7 +487,7 @@ async function renderConsultationDetail(id) {
             <ul class="c-status-filter__menu" id="detailStatusFilterMenu" role="listbox" aria-hidden="true">
               ${CONSULTATION_STATUS_OPTIONS.filter((o) => o.value).map((o) => {
                 const active = o.value === c.status ? ' is-active' : '';
-                return `<li role="presentation"><button type="button" class="c-status-filter__opt${active}" role="option" data-value="${o.value}" onclick="pickDetailStatusFilter(${JSON.stringify(o.value)})"><span class="c-status-filter__dot c-status-filter__dot--${o.value}" aria-hidden="true"></span><span class="c-status-filter__opt-label">${escHtml(o.label)}</span></button></li>`;
+                return `<li role="presentation"><button type="button" class="c-status-filter__opt${active}" role="option" data-value="${o.value}" onclick='pickDetailStatusFilter(${JSON.stringify(o.value)})'><span class="c-status-filter__dot c-status-filter__dot--${o.value}" aria-hidden="true"></span><span class="c-status-filter__opt-label">${escHtml(o.label)}</span></button></li>`;
               }).join('')}
             </ul>
           </div>
