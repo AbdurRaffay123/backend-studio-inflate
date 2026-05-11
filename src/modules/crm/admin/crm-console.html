@@ -292,7 +292,7 @@ async function renderConsultationsList(page = 1) {
       <div><div class="page-title">Consultations</div><div class="page-sub">${pagination.total ?? 0} total records</div></div>
       <button type="button" class="btn-ghost btn-excel-download" onclick="downloadConsultationsExport()" title="CSV file opens in Microsoft Excel">Download Excel</button>
     </div>
-    <div class="controls">
+    <div class="controls controls-consultations">
       <select id="fStatus" onchange="cStatus=this.value;renderConsultationsList(1)">
         <option value="">All statuses</option>
         <option value="new" ${cStatus==='new'?'selected':''}>New</option>
@@ -303,7 +303,7 @@ async function renderConsultationsList(page = 1) {
       </select>
       <input type="date" id="fFrom" value="${cFrom}" max="${cTo || ''}" title="Created on or after" onchange="cFrom=this.value;if(cFrom&amp;&amp;cTo&amp;&amp;cTo&lt;cFrom)cTo=cFrom;renderConsultationsList(1)" />
       <input type="date" id="fTo"   value="${cTo}"   min="${cFrom || ''}" title="Created on or before (must be on or after From)" onchange="cTo=this.value;if(cFrom&amp;&amp;cTo&amp;&amp;cTo&lt;cFrom)cTo=cFrom;renderConsultationsList(1)" />
-      <button class="btn-ghost btn-sm" onclick="cStatus='';cFrom='';cTo='';renderConsultationsList(1)">Clear</button>
+      <button type="button" class="btn-ghost btn-clear-consultations" onclick="cStatus='';cFrom='';cTo='';renderConsultationsList(1)">Clear</button>
     </div>
     <div class="table-wrap">
       <table>
