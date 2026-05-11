@@ -514,7 +514,7 @@ async function renderCustomersList(page = 1, opts = {}) {
     <div class="controls controls-customers">
       <div class="field">
         <label for="qInput">Search here</label>
-        <input type="text" id="qInput" value="${escHtml(custQ)}" placeholder="Search by name, email, phone, or Shopify ID…"
+        <input type="text" id="qInput" value="${escHtml(custQ)}" placeholder="Search by name, email, phone, or numeric ID…"
                oninput="handleCustomerSearchInput(this.value)"
                onkeydown="if(event.key==='Enter'){custQ=this.value.trim();renderCustomersList(1)}" />
       </div>
