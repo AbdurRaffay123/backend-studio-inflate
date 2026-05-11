@@ -176,12 +176,21 @@ const badge = (status) =>
 
 const errBox = (msg) => `<div class="err-box">${msg}</div>`;
 
+/** Shopify may store `gid://shopify/Customer/123` — show only the numeric tail in UI. */
+const shopifyCustomerIdDisplay = (raw) => {
+  if (raw == null || raw === '') return '';
+  const s = String(raw).trim();
+  const tail = s.split('/').pop();
+  if (tail && /^\d+$/.test(tail)) return tail;
+  return /^\d+$/.test(s) ? s : s;
+};
+
 const displayName = (item = {}) =>
   escHtml(
     item.fullName ||
     `${item.firstName || ''} ${item.lastName || ''}`.trim() ||
     item.email ||
-    item.shopifyCustomerId ||
+    shopifyCustomerIdDisplay(item.shopifyCustomerId) ||
     'Customer'
   );
 
@@ -201,7 +210,7 @@ const customerCell = (item = {}, sub = '') => `
     <span class="avatar">${initials(item)}</span>
     <div>
       <div class="entity-main">${displayName(item)}</div>
-      <div class="entity-sub">${escHtml(sub || item.email || item.shopifyCustomerId || '')}</div>
+      <div class="entity-sub">${escHtml(sub || item.email || shopifyCustomerIdDisplay(item.shopifyCustomerId) || '')}</div>
     </div>
   </div>
 `;
@@ -232,7 +241,7 @@ async function renderConsultationsList(page = 1) {
   const rows = data.length
     ? data.map(c => `
         <tr class="clickable" onclick="navigate('consultations','${c._id}')">
-          <td>${customerCell(c, c.email || c.shopifyCustomerId)}</td>
+          <td>${customerCell(c, c.email || shopifyCustomerIdDisplay(c.shopifyCustomerId))}</td>
           <td>${badge(c.status)}</td>
           <td>${fmt.type(c.type)}</td>
           <td><b>${fmt.date(c.scheduledDate)}</b><div class="td-muted">${c.scheduledTime || 'No time set'}</div></td>
@@ -356,7 +365,7 @@ async function renderConsultationDetail(id) {
       <div class="card">
         <h3>Shopify</h3>
         <div class="grid-2">
-          <div class="field"><label>Customer ID</label><div class="val mono">${c.shopifyCustomerId || '—'}</div></div>
+          <div class="field"><label>Customer ID</label><div class="val mono">${escHtml(shopifyCustomerIdDisplay(c.shopifyCustomerId)) || '—'}</div></div>
           <div class="field"><label>Order ID</label><div class="val mono">${c.shopifyOrderId || '—'}</div></div>
           <div class="field"><label>Order #</label><div class="val">${c.shopifyOrderName || '—'}</div></div>
         </div>
@@ -491,7 +500,7 @@ async function renderCustomersList(page = 1, opts = {}) {
   const rows = data.length
     ? data.map(c => `
         <tr class="clickable" onclick="navigate('customers','${c._id}')">
-          <td>${customerCell(c, c.shopifyCustomerId)}</td>
+          <td>${customerCell(c, shopifyCustomerIdDisplay(c.shopifyCustomerId))}</td>
           <td>${escHtml(c.email || '—')}</td>
           <td>${c.phone || '—'}</td>
           <td>${fmt.date(c.memberSince)}</td>
@@ -598,7 +607,7 @@ async function renderCustomerDetail(id) {
         <span class="avatar">${initials(c)}</span>
         <div>
           <div class="page-title">${displayName(c)}</div>
-          <div class="page-sub">Shopify ID: ${c.shopifyCustomerId}</div>
+          <div class="page-sub">${escHtml(shopifyCustomerIdDisplay(c.shopifyCustomerId)) || '—'}</div>
         </div>
       </div>
     </div>
