@@ -246,6 +246,111 @@ const customerCell = (item = {}) => {
 const tagBadges = (tags = []) =>
   tags.map(t => `<span class="badge badge-booked">${escHtml(t)}</span>`).join(' ') || '—';
 
+/** Status labels for consultation filters + detail (order matches admin API). */
+const CONSULTATION_STATUS_OPTIONS = [
+  { value: '', label: 'All statuses' },
+  { value: 'new', label: 'New' },
+  { value: 'contacted', label: 'Contacted' },
+  { value: 'booked', label: 'Booked' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+];
+
+let _consultationsStatusFilterCloser = null;
+window.closeConsultationsStatusFilter = function () {
+  const wrap = document.getElementById('cStatusFilterWrap');
+  const btn = document.getElementById('cStatusFilterTrigger');
+  if (wrap) wrap.classList.remove('is-open');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+  if (_consultationsStatusFilterCloser) {
+    document.removeEventListener('click', _consultationsStatusFilterCloser, true);
+    _consultationsStatusFilterCloser = null;
+  }
+};
+
+window.toggleConsultationsStatusFilter = function (ev) {
+  ev.preventDefault();
+  ev.stopPropagation();
+  const wrap = document.getElementById('cStatusFilterWrap');
+  if (!wrap) return;
+  if (wrap.classList.contains('is-open')) {
+    closeConsultationsStatusFilter();
+    return;
+  }
+  closeConsultationsStatusFilter();
+  wrap.classList.add('is-open');
+  const tr = document.getElementById('cStatusFilterTrigger');
+  if (tr) tr.setAttribute('aria-expanded', 'true');
+  _consultationsStatusFilterCloser = function (e) {
+    const w = document.getElementById('cStatusFilterWrap');
+    if (!w || !w.contains(e.target)) closeConsultationsStatusFilter();
+  };
+  setTimeout(() => document.addEventListener('click', _consultationsStatusFilterCloser, true), 0);
+};
+
+window.pickConsultationsStatusFilter = function (value) {
+  cStatus = value;
+  closeConsultationsStatusFilter();
+  renderConsultationsList(1);
+};
+
+let _detailStatusFilterCloser = null;
+window.closeDetailStatusFilter = function () {
+  const wrap = document.getElementById('detailStatusFilterWrap');
+  const btn = document.getElementById('detailStatusFilterTrigger');
+  if (wrap) wrap.classList.remove('is-open');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+  if (_detailStatusFilterCloser) {
+    document.removeEventListener('click', _detailStatusFilterCloser, true);
+    _detailStatusFilterCloser = null;
+  }
+};
+
+window.toggleDetailStatusFilter = function (ev) {
+  ev.preventDefault();
+  ev.stopPropagation();
+  const wrap = document.getElementById('detailStatusFilterWrap');
+  if (!wrap) return;
+  if (wrap.classList.contains('is-open')) {
+    closeDetailStatusFilter();
+    return;
+  }
+  closeDetailStatusFilter();
+  wrap.classList.add('is-open');
+  document.getElementById('detailStatusFilterTrigger')?.setAttribute('aria-expanded', 'true');
+  _detailStatusFilterCloser = function (e) {
+    const w = document.getElementById('detailStatusFilterWrap');
+    if (!w || !w.contains(e.target)) closeDetailStatusFilter();
+  };
+  setTimeout(() => document.addEventListener('click', _detailStatusFilterCloser, true), 0);
+};
+
+window.pickDetailStatusFilter = function (value) {
+  const sel = document.getElementById('statusSel');
+  if (sel) sel.value = value;
+  const txt = document.getElementById('detailStatusFilterTriggerText');
+  const dot = document.getElementById('detailStatusFilterTriggerDot');
+  const lab = CONSULTATION_STATUS_OPTIONS.find((o) => o.value === value)?.label || value;
+  if (txt) txt.textContent = lab;
+  if (dot) dot.className = 'c-status-filter__dot c-status-filter__dot--' + value;
+  document.querySelectorAll('#detailStatusFilterMenu .c-status-filter__opt').forEach((b) => {
+    b.classList.toggle('is-active', b.dataset.value === value);
+  });
+  closeDetailStatusFilter();
+};
+
+document.addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Escape') return;
+  if (document.getElementById('cStatusFilterWrap')?.classList.contains('is-open')) {
+    closeConsultationsStatusFilter();
+    ev.preventDefault();
+  }
+  if (document.getElementById('detailStatusFilterWrap')?.classList.contains('is-open')) {
+    closeDetailStatusFilter();
+    ev.preventDefault();
+  }
+});
+
 // ════════════════════════════════════════════════════════
 //  Consultations List
 // ════════════════════════════════════════════════════════
@@ -266,6 +371,13 @@ async function renderConsultationsList(page = 1) {
   if (!json) return;
 
   const { data = [], pagination = {} } = json;
+
+  const cStatusFilterLabel = CONSULTATION_STATUS_OPTIONS.find((o) => o.value === cStatus)?.label || 'All statuses';
+  const cStatusFilterOptionsHtml = CONSULTATION_STATUS_OPTIONS.map((o) => {
+    const active = o.value === cStatus ? ' is-active' : '';
+    const dotMod = o.value ? o.value : 'all';
+    return `<li role="presentation"><button type="button" class="c-status-filter__opt${active}" role="option" data-value="${escHtml(o.value)}" onclick="pickConsultationsStatusFilter(${JSON.stringify(o.value)})"><span class="c-status-filter__dot c-status-filter__dot--${dotMod}" aria-hidden="true"></span><span class="c-status-filter__opt-label">${escHtml(o.label)}</span></button></li>`;
+  }).join('');
 
   const rows = data.length
     ? data.map(c => `
@@ -293,17 +405,17 @@ async function renderConsultationsList(page = 1) {
       <button type="button" class="btn-ghost btn-excel-download" onclick="downloadConsultationsExport()" title="CSV file opens in Microsoft Excel">Download Excel</button>
     </div>
     <div class="controls controls-consultations">
-      <select id="fStatus" onchange="cStatus=this.value;renderConsultationsList(1)">
-        <option value="">All statuses</option>
-        <option value="new" ${cStatus==='new'?'selected':''}>New</option>
-        <option value="contacted" ${cStatus==='contacted'?'selected':''}>Contacted</option>
-        <option value="booked" ${cStatus==='booked'?'selected':''}>Booked</option>
-        <option value="completed" ${cStatus==='completed'?'selected':''}>Completed</option>
-        <option value="cancelled" ${cStatus==='cancelled'?'selected':''}>Cancelled</option>
-      </select>
+      <div class="c-status-filter" id="cStatusFilterWrap">
+        <button type="button" class="c-status-filter__trigger" id="cStatusFilterTrigger" onclick="toggleConsultationsStatusFilter(event)" aria-expanded="false" aria-haspopup="listbox" aria-controls="cStatusFilterMenu">
+          <span class="c-status-filter__dot c-status-filter__dot--${cStatus || 'all'}" aria-hidden="true"></span>
+          <span class="c-status-filter__trigger-text">${escHtml(cStatusFilterLabel)}</span>
+          <span class="c-status-filter__chev" aria-hidden="true"></span>
+        </button>
+        <ul class="c-status-filter__menu" id="cStatusFilterMenu" role="listbox" aria-hidden="true">${cStatusFilterOptionsHtml}</ul>
+      </div>
       <input type="date" id="fFrom" value="${cFrom}" max="${cTo || ''}" title="Created on or after" onchange="cFrom=this.value;if(cFrom&amp;&amp;cTo&amp;&amp;cTo&lt;cFrom)cTo=cFrom;renderConsultationsList(1)" />
       <input type="date" id="fTo"   value="${cTo}"   min="${cFrom || ''}" title="Created on or before (must be on or after From)" onchange="cTo=this.value;if(cFrom&amp;&amp;cTo&amp;&amp;cTo&lt;cFrom)cTo=cFrom;renderConsultationsList(1)" />
-      <button type="button" class="btn-ghost btn-clear-consultations" onclick="cStatus='';cFrom='';cTo='';renderConsultationsList(1)">Clear</button>
+      <button type="button" class="btn-ghost btn-clear-consultations" onclick="cStatus='';cFrom='';cTo='';closeConsultationsStatusFilter();renderConsultationsList(1)">Clear</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -359,13 +471,26 @@ async function renderConsultationDetail(id) {
     <div class="card">
       <h3>Update</h3>
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-        <div>
-          <label style="font-size:9pt;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">Status</label>
-          <select id="statusSel">
-            ${['new','contacted','booked','completed','cancelled'].map(s =>
-              `<option value="${s}" ${c.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`
+        <div class="c-status-filter-field">
+          <label for="detailStatusFilterTrigger" style="font-size:9pt;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">Status</label>
+          <select id="statusSel" class="sr-only-select" tabindex="-1" aria-hidden="true">
+            ${['new','contacted','booked','completed','cancelled'].map((s) =>
+              `<option value="${s}" ${c.status === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`
             ).join('')}
           </select>
+          <div class="c-status-filter c-status-filter--detail" id="detailStatusFilterWrap">
+            <button type="button" class="c-status-filter__trigger" id="detailStatusFilterTrigger" onclick="toggleDetailStatusFilter(event)" aria-expanded="false" aria-haspopup="listbox" aria-controls="detailStatusFilterMenu">
+              <span class="c-status-filter__dot c-status-filter__dot--${c.status}" id="detailStatusFilterTriggerDot" aria-hidden="true"></span>
+              <span class="c-status-filter__trigger-text" id="detailStatusFilterTriggerText">${escHtml(CONSULTATION_STATUS_OPTIONS.find((o) => o.value === c.status)?.label || c.status)}</span>
+              <span class="c-status-filter__chev" aria-hidden="true"></span>
+            </button>
+            <ul class="c-status-filter__menu" id="detailStatusFilterMenu" role="listbox" aria-hidden="true">
+              ${CONSULTATION_STATUS_OPTIONS.filter((o) => o.value).map((o) => {
+                const active = o.value === c.status ? ' is-active' : '';
+                return `<li role="presentation"><button type="button" class="c-status-filter__opt${active}" role="option" data-value="${o.value}" onclick="pickDetailStatusFilter(${JSON.stringify(o.value)})"><span class="c-status-filter__dot c-status-filter__dot--${o.value}" aria-hidden="true"></span><span class="c-status-filter__opt-label">${escHtml(o.label)}</span></button></li>`;
+              }).join('')}
+            </ul>
+          </div>
         </div>
         <div style="flex:1;min-width:200px;">
           <label style="font-size:9pt;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px;">Internal note (optional)</label>
@@ -481,6 +606,14 @@ window.saveConsultationUpdate = async (id) => {
     if (schedEl) schedEl.innerHTML = statusHtml;
     const sel = document.getElementById('statusSel');
     if (sel) sel.value = nextStatus;
+    const dTxt = document.getElementById('detailStatusFilterTriggerText');
+    const dDot = document.getElementById('detailStatusFilterTriggerDot');
+    const dLab = CONSULTATION_STATUS_OPTIONS.find((o) => o.value === nextStatus)?.label || nextStatus;
+    if (dTxt) dTxt.textContent = dLab;
+    if (dDot) dDot.className = 'c-status-filter__dot c-status-filter__dot--' + nextStatus;
+    document.querySelectorAll('#detailStatusFilterMenu .c-status-filter__opt').forEach((b) => {
+      b.classList.toggle('is-active', b.dataset.value === nextStatus);
+    });
   }
 
   // Refresh notes list

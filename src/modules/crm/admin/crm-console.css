@@ -121,10 +121,6 @@ a:hover { text-decoration: underline; }
   height: 40px;
   box-sizing: border-box;
 }
-.controls-consultations #fStatus {
-  height: 40px;
-  box-sizing: border-box;
-}
 .controls-consultations .btn-clear-consultations {
   min-width: 108px;
   height: 40px;
@@ -176,20 +172,126 @@ select, input[type="text"], input[type="date"], textarea {
 }
 select:focus, input:focus, textarea:focus { border-color: var(--brand-soft); box-shadow: 0 0 0 3px rgba(175,204,198,.24); }
 
-/* Consultation list + detail — status dropdowns: compact width + chevron tight to text */
-#fStatus,
-#statusSel {
-  width: max-content;
-  max-width: 100%;
-  min-width: 11.5rem; /* fits “All statuses” + chevron */
-  padding: 9px 2rem 9px 11px;
-  appearance: none;
-  -webkit-appearance: none;
+/* Custom status filter (list + detail) — light panel, matches CRM chrome */
+.c-status-filter-field {
+  position: relative;
+}
+.sr-only-select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.c-status-filter {
+  position: relative;
+  z-index: 2;
+}
+.c-status-filter.is-open {
+  z-index: 130;
+}
+.c-status-filter__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 11.5rem;
+  height: 40px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 10pt;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--white);
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
   cursor: pointer;
-  background-color: var(--white);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5L5 7l3-3.5' fill='none' stroke='%235a6573' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.5rem center;
+  text-align: left;
+  transition: border-color .12s, box-shadow .12s;
+}
+.c-status-filter__trigger:hover {
+  border-color: var(--brand-soft);
+}
+.c-status-filter.is-open .c-status-filter__trigger {
+  border-color: var(--brand-soft);
+  box-shadow: 0 0 0 3px rgba(175, 204, 198, .24);
+}
+.c-status-filter__trigger-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.c-status-filter__chev {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5L5 7l3-3.5' fill='none' stroke='%235a6573' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center no-repeat;
+  opacity: .85;
+}
+.c-status-filter__menu {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 5px);
+  min-width: 100%;
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.c-status-filter.is-open .c-status-filter__menu {
+  display: block;
+}
+.c-status-filter__menu li + li {
+  border-top: 1px solid rgba(216, 226, 223, .65);
+}
+.c-status-filter__opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 10pt;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: background .1s;
+}
+.c-status-filter__opt:hover {
+  background: var(--brand-bg);
+}
+.c-status-filter__opt.is-active {
+  background: rgba(175, 204, 198, .38);
+  font-weight: 700;
+}
+.c-status-filter__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .95);
+}
+.c-status-filter__dot--all { background: var(--muted); }
+.c-status-filter__dot--new { background: var(--status-new); }
+.c-status-filter__dot--contacted { background: var(--status-contacted); }
+.c-status-filter__dot--booked { background: var(--status-booked); }
+.c-status-filter__dot--completed { background: var(--status-completed); }
+.c-status-filter__dot--cancelled { background: var(--status-cancelled); }
+
+.c-status-filter--detail .c-status-filter__trigger {
+  min-width: 10.5rem;
 }
 .btn {
   padding: 9px 16px;
