@@ -314,7 +314,7 @@ async function renderConsultationDetail(id) {
         <div class="page-title">${displayName(c)}</div>
         <div class="page-sub">Consultation #${id.slice(-6)} · ${fmt.type(c.type)} · Created ${fmt.datetime(c.createdAt)}</div>
       </div>
-      <div>${badge(c.status)}</div>
+      <div id="detailHeroStatus">${badge(c.status)}</div>
     </div>
 
     <!-- Update status + add note -->
@@ -344,7 +344,7 @@ async function renderConsultationDetail(id) {
         <h3>Schedule</h3>
         <div class="grid-2">
           <div class="field"><label>Type</label><div class="val">${fmt.type(c.type)}</div></div>
-          <div class="field"><label>Status</label><div class="val">${badge(c.status)}</div></div>
+          <div class="field"><label>Status</label><div class="val" id="detailScheduleStatus">${badge(c.status)}</div></div>
           <div class="field"><label>Consultation Date</label><div class="val">${fmt.date(c.scheduledDate)}</div></div>
           <div class="field"><label>Consultation Time</label><div class="val">${c.scheduledTime || '—'}</div></div>
           <div class="field"><label>Duration</label><div class="val">${fmt.dur(c.duration)}</div></div>
@@ -433,6 +433,18 @@ window.saveConsultationUpdate = async (id) => {
   msg.style.display = 'inline';
   if (note) document.getElementById('noteInput').value = '';
   setTimeout(() => { msg.style.display = 'none'; }, 3000);
+
+  const nextStatus = json.data?.status || status;
+  if (nextStatus) {
+    const statusHtml = badge(nextStatus);
+    const heroEl = document.getElementById('detailHeroStatus');
+    const schedEl = document.getElementById('detailScheduleStatus');
+    if (heroEl) heroEl.innerHTML = statusHtml;
+    if (schedEl) schedEl.innerHTML = statusHtml;
+    const sel = document.getElementById('statusSel');
+    if (sel) sel.value = nextStatus;
+  }
+
   // Refresh notes list
   if (note && json.data?.internalNotes) {
     document.getElementById('notesList').innerHTML =
