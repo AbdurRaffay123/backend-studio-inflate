@@ -106,6 +106,7 @@ a:hover { text-decoration: underline; }
 }
 .page-title { font-size: 21pt; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
 .page-sub   { color: var(--muted); font-size: 10pt; margin-top: 2px; }
+.export-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
 /* ── Filters / Controls ─────────────────────────────────── */
 .controls {
@@ -120,6 +121,23 @@ a:hover { text-decoration: underline; }
 .controls-consultations input[type="date"] {
   height: 40px;
   box-sizing: border-box;
+}
+.controls-consultations {
+  align-items: flex-end;
+}
+.controls-consultations .field {
+  margin-bottom: 0;
+}
+.controls-consultations .field label {
+  margin-bottom: 4px;
+}
+.controls-consultations .field-search input {
+  min-width: 320px;
+  width: min(34vw, 520px);
+}
+.controls-consultations .field-compact select {
+  min-width: 132px;
+  height: 40px;
 }
 .controls-consultations .btn-clear-consultations {
   min-width: 108px;
@@ -388,6 +406,42 @@ tr.clickable:hover td { background: #f4f9f8; cursor: pointer; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .field label { font-size: 8.5pt; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 3px; }
 .field .val  { font-size: 10.5pt; color: var(--ink); word-break: break-word; }
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.insight-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.insight-label {
+  color: var(--muted);
+  font-size: 8.5pt;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.insight-value {
+  margin-top: 8px;
+  color: var(--brand);
+  font-size: 22pt;
+  font-weight: 850;
+  letter-spacing: -.04em;
+}
+.insight-value--sm {
+  font-size: 15pt;
+  letter-spacing: -.02em;
+}
+.insight-sub {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 9pt;
+}
 .detail-hero {
   background: linear-gradient(135deg, var(--brand), #234f49);
   color: #fff;
@@ -457,7 +511,7 @@ tr.clickable:hover td { background: #f4f9f8; cursor: pointer; }
   .sidebar-footer { display: none; }
   .main { margin-left: 0; width: 100%; padding: 22px 16px 32px; }
   .topbar, .detail-hero { align-items: flex-start; flex-direction: column; }
-  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .insight-grid { grid-template-columns: 1fr; }
   .table-wrap { overflow-x: auto; }
   table { min-width: 760px; }
 }

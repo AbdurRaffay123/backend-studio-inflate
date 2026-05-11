@@ -11,6 +11,7 @@
  *
  * Admin (JWT auth, used by the admin SPA at /admin):
  *   /api/crm/admin/auth/login
+ *   /api/crm/admin/dashboard
  *   /api/crm/admin/consultations
  *   /api/crm/admin/customers
  */
@@ -23,6 +24,7 @@ const apiKey = require('../middleware/apiKey');
 const publicConsultations = require('./public/consultations');
 const publicCustomers     = require('./public/customers');
 const adminAuth           = require('./admin/auth');
+const adminDashboard      = require('./admin/dashboard');
 const adminConsultations  = require('./admin/consultations');
 const adminCustomers      = require('./admin/customers');
 
@@ -59,6 +61,7 @@ router.use('/customers',     publicLimiter, apiKey, publicCustomers);
 
 // ── Admin API ────────────────────────────────────────────────────────────────
 router.use('/admin/auth',          loginLimiter, adminAuth);
+router.use('/admin/dashboard',     adminLimiter, adminDashboard);
 router.use('/admin/consultations', adminLimiter, adminConsultations);
 router.use('/admin/customers',     adminLimiter, adminCustomers);
 

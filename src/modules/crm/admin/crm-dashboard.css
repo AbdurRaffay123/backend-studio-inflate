@@ -1,0 +1,207 @@
+.dashboard-hero {
+  align-items: flex-start;
+}
+
+.dash-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.dash-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 126px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(175,204,198,.32), transparent 9rem),
+    var(--white);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: transform .12s, border-color .12s, box-shadow .12s;
+}
+
+.dash-stat:hover {
+  border-color: var(--brand-soft);
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.dash-stat__label {
+  color: var(--muted);
+  font-size: 8.5pt;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.dash-stat__value {
+  margin-top: 10px;
+  font-size: 25pt;
+  font-weight: 850;
+  letter-spacing: -.04em;
+  color: var(--brand);
+}
+
+.dash-stat__sub {
+  margin-top: auto;
+  color: var(--muted);
+  font-size: 9.5pt;
+}
+
+.dashboard-main-grid {
+  align-items: stretch;
+}
+
+.dashboard-card {
+  height: 100%;
+}
+
+.dashboard-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+
+.dashboard-card__head h3 {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.dashboard-card__head span {
+  color: var(--muted);
+  font-size: 9pt;
+  font-weight: 700;
+}
+
+.pipeline-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.pipeline-card {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 13px;
+  background: var(--white);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s, transform .12s, border-color .12s;
+}
+
+.pipeline-card:hover {
+  background: var(--brand-bg);
+  transform: translateX(2px);
+}
+
+.pipeline-card--new { border-left-color: var(--status-new); }
+.pipeline-card--contacted { border-left-color: var(--status-contacted); }
+.pipeline-card--booked { border-left-color: var(--status-booked); }
+.pipeline-card--completed { border-left-color: var(--status-completed); }
+.pipeline-card--cancelled { border-left-color: var(--status-cancelled); }
+
+.pipeline-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11pt;
+  font-weight: 800;
+}
+
+.pipeline-card__bar {
+  display: block;
+  height: 7px;
+  margin: 10px 0 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef3f2;
+}
+
+.pipeline-card__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand);
+}
+
+.pipeline-card__help {
+  color: var(--muted);
+  font-size: 9pt;
+}
+
+.activity-list {
+  display: grid;
+  gap: 9px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s, border-color .12s;
+}
+
+.activity-item:hover {
+  background: var(--brand-bg);
+  border-color: var(--brand-soft);
+}
+
+.activity-item small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9pt;
+}
+
+.activity-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--brand);
+  flex-shrink: 0;
+}
+
+.activity-dot--customer { background: var(--gold); }
+.activity-dot--new { background: var(--status-new); }
+.activity-dot--contacted { background: var(--status-contacted); }
+.activity-dot--booked { background: var(--status-booked); }
+.activity-dot--completed { background: var(--status-completed); }
+.activity-dot--cancelled { background: var(--status-cancelled); }
+
+.empty-compact {
+  padding: 24px;
+}
+
+@media (max-width: 1100px) {
+  .dash-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .dash-stat-grid {
+    grid-template-columns: 1fr;
+  }
+}

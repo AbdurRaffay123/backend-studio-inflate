@@ -4,10 +4,36 @@ const consultationService = require('../services/consultationService');
 const { parsePagination, buildResponse } = require('../utils/paginate');
 const { buildCsv, toIso } = require('../utils/csvExport');
 
+const ACTIVE_PIPELINE_STATUSES = ['new', 'contacted', 'booked'];
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const buildConsultationListFilter = (req) => {
   const filter = {};
-  if (req.query.status) filter.status = req.query.status;
+  const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+
+  if (req.query.pipeline === 'active') {
+    filter.status = { $in: ACTIVE_PIPELINE_STATUSES };
+  } else if (req.query.status) {
+    filter.status = req.query.status;
+  }
+  if (req.query.type) filter.type = req.query.type;
   if (req.query.shopifyCustomerId) filter.shopifyCustomerId = req.query.shopifyCustomerId;
+  if (q) {
+    const re = new RegExp(escapeRegex(q), 'i');
+    filter.$or = [
+      { fullName: re },
+      { email: re },
+      { phone: re },
+      { shopifyCustomerId: re },
+      { shopifyOrderId: re },
+      { shopifyOrderName: re },
+      { 'intake.eventType': re },
+      { 'intake.venueName': re },
+      { 'intake.venueAddress': re },
+      { 'intake.services': re },
+    ];
+  }
   if (req.query.from || req.query.to) {
     filter.createdAt = {};
     if (req.query.from) filter.createdAt.$gte = new Date(req.query.from);

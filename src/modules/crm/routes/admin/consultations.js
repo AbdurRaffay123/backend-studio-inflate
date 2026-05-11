@@ -7,6 +7,7 @@ const jwtAuth                = require('../../middleware/jwtAuth');
 const validate               = require('../../middleware/validate');
 
 const STATUSES = ['new', 'contacted', 'booked', 'completed', 'cancelled'];
+const TYPES = ['phone', 'virtual', 'in_person'];
 
 const router = Router();
 router.use(jwtAuth);
@@ -15,6 +16,9 @@ router.get(
   '/export',
   [
     query('status').optional().isIn(STATUSES),
+    query('pipeline').optional().isIn(['active']),
+    query('type').optional().isIn(TYPES),
+    query('q').optional().isString().trim(),
     query('shopifyCustomerId').optional().isString().trim(),
     query('from').optional().isISO8601(),
     query('to').optional().isISO8601(),
@@ -27,6 +31,9 @@ router.get(
   '/',
   [
     query('status').optional().isIn(STATUSES),
+    query('pipeline').optional().isIn(['active']),
+    query('type').optional().isIn(TYPES),
+    query('q').optional().isString().trim(),
     query('shopifyCustomerId').optional().isString().trim(),
     query('from').optional().isISO8601(),
     query('to').optional().isISO8601(),

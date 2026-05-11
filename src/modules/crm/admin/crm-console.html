@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Inflate Studio CRM</title>
 <link rel="stylesheet" href="crm-console.css" />
+<link rel="stylesheet" href="crm-dashboard.css" />
 </head>
 <body>
 
@@ -21,7 +22,10 @@
       </div>
     </div>
     <div class="nav">
-      <button class="nav-item active" id="nav-consultations" onclick="navigate('consultations')">
+      <button class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" id="nav-consultations" onclick="navigate('consultations')">
         <span class="nav-icon">📋</span> Consultations
       </button>
       <button class="nav-item" id="nav-customers" onclick="navigate('customers')">
@@ -101,11 +105,18 @@ const downloadAdminCsv = async (path, fallbackName) => {
 window.downloadConsultationsExport = () => {
   if (cFrom && cTo && cTo < cFrom) cTo = cFrom;
   const params = new URLSearchParams();
+  if (cQ) params.set('q', cQ);
   if (cStatus) params.set('status', cStatus);
+  if (cPipeline) params.set('pipeline', cPipeline);
+  if (cType) params.set('type', cType);
   if (cFrom) params.set('from', cFrom);
   if (cTo) params.set('to', cTo);
   const q = params.toString();
-  downloadAdminCsv(`/admin/consultations/export${q ? `?${q}` : ''}`, 'consultations-export.csv');
+  downloadAdminCsv(`/admin/consultations/export${q ? `?${q}` : ''}`, 'consultations-current-view.csv');
+};
+
+window.downloadAllConsultationsExport = () => {
+  downloadAdminCsv('/admin/consultations/export', 'consultations-all.csv');
 };
 
 window.downloadCustomersExport = () => {
@@ -115,7 +126,11 @@ window.downloadCustomersExport = () => {
   if (custMemberFrom) params.set('memberSinceFrom', custMemberFrom);
   if (custMemberTo) params.set('memberSinceTo', custMemberTo);
   const q = params.toString();
-  downloadAdminCsv(`/admin/customers/export${q ? `?${q}` : ''}`, 'customers-export.csv');
+  downloadAdminCsv(`/admin/customers/export${q ? `?${q}` : ''}`, 'customers-current-view.csv');
+};
+
+window.downloadAllCustomersExport = () => {
+  downloadAdminCsv('/admin/customers/export', 'customers-all.csv');
 };
 
 const logout = () => {
@@ -144,6 +159,7 @@ function navigate(section, ...args) {
 }
 
 const ROUTES = [
+  [/^#\/dashboard$/,                 ()      => renderDashboard()],
   [/^#\/consultations\/([^/]+)$/,   (_, id) => renderConsultationDetail(decodeURIComponent(id))],
   [/^#\/consultations$/,             ()      => renderConsultationsList()],
   [/^#\/customers\/(.+)$/,          (_, id) => renderCustomerDetail(decodeURIComponent(id))],
@@ -151,12 +167,12 @@ const ROUTES = [
 ];
 
 const router = () => {
-  const hash = window.location.hash || '#/consultations';
+  const hash = window.location.hash || '#/dashboard';
   for (const [re, handler] of ROUTES) {
     const m = hash.match(re);
     if (m) { handler(...m); return; }
   }
-  renderConsultationsList();
+  renderDashboard();
 };
 
 window.addEventListener('hashchange', router);
@@ -256,6 +272,13 @@ const CONSULTATION_STATUS_OPTIONS = [
   { value: 'cancelled', label: 'Cancelled' },
 ];
 
+const CONSULTATION_TYPE_OPTIONS = [
+  { value: '', label: 'All types' },
+  { value: 'phone', label: 'Phone' },
+  { value: 'virtual', label: 'Virtual' },
+  { value: 'in_person', label: 'In-Person' },
+];
+
 let _consultationsStatusFilterCloser = null;
 window.closeConsultationsStatusFilter = function () {
   const wrap = document.getElementById('cStatusFilterWrap');
@@ -290,6 +313,7 @@ window.toggleConsultationsStatusFilter = function (ev) {
 
 window.pickConsultationsStatusFilter = function (value) {
   cStatus = value;
+  cPipeline = '';
   closeConsultationsStatusFilter();
   renderConsultationsList(1);
 };
@@ -354,16 +378,31 @@ document.addEventListener('keydown', (ev) => {
 // ════════════════════════════════════════════════════════
 //  Consultations List
 // ════════════════════════════════════════════════════════
-let cPage = 1, cStatus = '', cFrom = '', cTo = '';
+let cPage = 1, cStatus = '', cFrom = '', cTo = '', cPipeline = '', cQ = '', cType = '';
+let consultationSearchTimer = null;
 
-async function renderConsultationsList(page = 1) {
+window.handleConsultationSearchInput = (value) => {
+  const next = (value || '').trim();
+  if (next === cQ) return;
+  if (consultationSearchTimer) clearTimeout(consultationSearchTimer);
+  consultationSearchTimer = setTimeout(() => {
+    cQ = next;
+    renderConsultationsList(1, { showLoading: false, preserveSearchFocus: true });
+  }, 180);
+};
+
+async function renderConsultationsList(page = 1, opts = {}) {
+  const { showLoading = true, preserveSearchFocus = false } = opts;
   setActiveNav('consultations');
   cPage = page;
   if (cFrom && cTo && cTo < cFrom) cTo = cFrom;
-  loading();
+  if (showLoading) loading();
 
   const params = new URLSearchParams({ page, limit: 20 });
+  if (cQ) params.set('q', cQ);
   if (cStatus) params.set('status', cStatus);
+  if (cPipeline) params.set('pipeline', cPipeline);
+  if (cType) params.set('type', cType);
   if (cFrom)   params.set('from', cFrom);
   if (cTo)     params.set('to', cTo);
 
@@ -372,12 +411,17 @@ async function renderConsultationsList(page = 1) {
 
   const { data = [], pagination = {} } = json;
 
-  const cStatusFilterLabel = CONSULTATION_STATUS_OPTIONS.find((o) => o.value === cStatus)?.label || 'All statuses';
+  const cStatusFilterLabel = cPipeline === 'active'
+    ? 'Active pipeline'
+    : CONSULTATION_STATUS_OPTIONS.find((o) => o.value === cStatus)?.label || 'All statuses';
   const cStatusFilterOptionsHtml = CONSULTATION_STATUS_OPTIONS.map((o) => {
     const active = o.value === cStatus ? ' is-active' : '';
     const dotMod = o.value ? o.value : 'all';
     return `<li role="presentation"><button type="button" class="c-status-filter__opt${active}" role="option" data-value="${escHtml(o.value)}" onclick='pickConsultationsStatusFilter(${JSON.stringify(o.value)})'><span class="c-status-filter__dot c-status-filter__dot--${dotMod}" aria-hidden="true"></span><span class="c-status-filter__opt-label">${escHtml(o.label)}</span></button></li>`;
   }).join('');
+  const typeOptionsHtml = CONSULTATION_TYPE_OPTIONS.map((o) =>
+    `<option value="${escHtml(o.value)}" ${o.value === cType ? 'selected' : ''}>${escHtml(o.label)}</option>`
+  ).join('');
 
   const rows = data.length
     ? data.map(c => `
@@ -402,9 +446,18 @@ async function renderConsultationsList(page = 1) {
   setContent(`
     <div class="topbar">
       <div><div class="page-title">Consultations</div><div class="page-sub">${pagination.total ?? 0} total records</div></div>
-      <button type="button" class="btn-ghost btn-excel-download" onclick="downloadConsultationsExport()" title="CSV file opens in Microsoft Excel">Download Excel</button>
+      <div class="export-actions">
+        <button type="button" class="btn-ghost btn-excel-download" onclick="downloadConsultationsExport()" title="CSV file opens in Microsoft Excel">Export Current View</button>
+        <button type="button" class="btn-ghost" onclick="downloadAllConsultationsExport()" title="Download every consultation record">Export All</button>
+      </div>
     </div>
     <div class="controls controls-consultations">
+      <div class="field field-search">
+        <label for="consultationSearchInput">Search</label>
+        <input type="text" id="consultationSearchInput" value="${escHtml(cQ)}" placeholder="Name, email, phone, order, event, venue..."
+               oninput="handleConsultationSearchInput(this.value)"
+               onkeydown="if(event.key==='Enter'){cQ=this.value.trim();renderConsultationsList(1)}" />
+      </div>
       <div class="c-status-filter" id="cStatusFilterWrap">
         <button type="button" class="c-status-filter__trigger" id="cStatusFilterTrigger" onclick="toggleConsultationsStatusFilter(event)" aria-expanded="false" aria-haspopup="listbox" aria-controls="cStatusFilterMenu">
           <span class="c-status-filter__dot c-status-filter__dot--${cStatus || 'all'}" aria-hidden="true"></span>
@@ -413,9 +466,13 @@ async function renderConsultationsList(page = 1) {
         </button>
         <ul class="c-status-filter__menu" id="cStatusFilterMenu" role="listbox" aria-hidden="true">${cStatusFilterOptionsHtml}</ul>
       </div>
+      <div class="field field-compact">
+        <label for="consultationTypeInput">Type</label>
+        <select id="consultationTypeInput" onchange="cType=this.value;renderConsultationsList(1)">${typeOptionsHtml}</select>
+      </div>
       <input type="date" id="fFrom" value="${cFrom}" max="${cTo || ''}" title="Created on or after" onchange="cFrom=this.value;if(cFrom&amp;&amp;cTo&amp;&amp;cTo&lt;cFrom)cTo=cFrom;renderConsultationsList(1)" />
       <input type="date" id="fTo"   value="${cTo}"   min="${cFrom || ''}" title="Created on or before (must be on or after From)" onchange="cTo=this.value;if(cFrom&amp;&amp;cTo&amp;&amp;cTo&lt;cFrom)cTo=cFrom;renderConsultationsList(1)" />
-      <button type="button" class="btn-ghost btn-clear-consultations" onclick="cStatus='';cFrom='';cTo='';closeConsultationsStatusFilter();renderConsultationsList(1)">Clear</button>
+      <button type="button" class="btn-ghost btn-clear-consultations" onclick="cQ='';cStatus='';cPipeline='';cType='';cFrom='';cTo='';closeConsultationsStatusFilter();renderConsultationsList(1)">Clear</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -427,6 +484,15 @@ async function renderConsultationsList(page = 1) {
     </div>
     ${pag}
   `);
+
+  if (preserveSearchFocus) {
+    const qInput = document.getElementById('consultationSearchInput');
+    if (qInput) {
+      qInput.focus();
+      const len = qInput.value.length;
+      qInput.setSelectionRange(len, len);
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -681,7 +747,10 @@ async function renderCustomersList(page = 1, opts = {}) {
   setContent(`
     <div class="topbar">
       <div><div class="page-title">Customers</div><div class="page-sub">${pagination.total ?? 0} CRM profiles</div></div>
-      <button type="button" class="btn-ghost btn-excel-download" onclick="downloadCustomersExport()" title="CSV file opens in Microsoft Excel">Download Excel</button>
+      <div class="export-actions">
+        <button type="button" class="btn-ghost btn-excel-download" onclick="downloadCustomersExport()" title="CSV file opens in Microsoft Excel">Export Current View</button>
+        <button type="button" class="btn-ghost" onclick="downloadAllCustomersExport()" title="Download every customer record">Export All</button>
+      </div>
     </div>
     <div class="controls controls-customers">
       <div class="field">
@@ -742,6 +811,17 @@ async function renderCustomerDetail(id) {
 
   const c = json.data;
   const cons = c.consultations || [];
+  const completedConsultations = cons.filter((item) => item.status === 'completed').length;
+  const openConsultations = cons.filter((item) => ['new', 'contacted', 'booked'].includes(item.status)).length;
+  const totalFees = cons
+    .filter((item) => item.status !== 'cancelled')
+    .reduce((sum, item) => sum + Number(item.price || 0), 0);
+  const lastConsultationDate = cons.reduce((latest, item) => {
+    const raw = item.scheduledDate || item.createdAt;
+    const date = raw ? new Date(raw) : null;
+    if (!date || Number.isNaN(date.getTime())) return latest;
+    return !latest || date > latest ? date : latest;
+  }, null);
 
   const notesHtml = (c.notes || []).length
     ? c.notes.map(n => `
@@ -772,6 +852,30 @@ async function renderCustomerDetail(id) {
           <div class="page-title">${displayName(c)}</div>
           <div class="page-sub">${escHtml(shopifyCustomerIdDisplay(c.shopifyCustomerId)) || '—'}</div>
         </div>
+      </div>
+    </div>
+
+    <!-- Customer insights -->
+    <div class="insight-grid">
+      <div class="insight-card">
+        <div class="insight-label">Consultations</div>
+        <div class="insight-value">${cons.length}</div>
+        <div class="insight-sub">${openConsultations} active pipeline</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Completed</div>
+        <div class="insight-value">${completedConsultations}</div>
+        <div class="insight-sub">Finished consultations</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Estimated Fees</div>
+        <div class="insight-value">${fmt.usd(totalFees)}</div>
+        <div class="insight-sub">Excludes cancelled</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Last Activity</div>
+        <div class="insight-value insight-value--sm">${fmt.date(lastConsultationDate)}</div>
+        <div class="insight-sub">${c.acceptsMarketing ? 'Marketing opt-in' : 'No marketing opt-in'}</div>
       </div>
     </div>
 
@@ -876,5 +980,6 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 </script>
+<script src="crm-dashboard.js"></script>
 </body>
 </html>
