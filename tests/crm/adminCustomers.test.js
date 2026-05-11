@@ -60,6 +60,19 @@ describe('GET /api/crm/admin/customers', () => {
     expect(shopifyMatcher.shopifyCustomerId.test('gid://shopify/Customer/SEED-003')).toBe(true);
   });
 
+  it('includes tags in customer search matching', async () => {
+    const res = await request(app)
+      .get('/api/crm/admin/customers?q=vip')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+
+    const filter = mockFind.mock.calls[0][0];
+    const tagsMatcher = filter.$or.find((clause) => clause.tags instanceof RegExp);
+    expect(tagsMatcher).toBeTruthy();
+    expect(tagsMatcher.tags.test('VIP')).toBe(true);
+  });
+
   it('uses no query filter when q is only whitespace', async () => {
     const res = await request(app)
       .get('/api/crm/admin/customers?q=%20%20%20')

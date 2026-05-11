@@ -698,11 +698,23 @@ window.saveConsultationUpdate = async (id) => {
 //  Customers List
 // ════════════════════════════════════════════════════════
 let custPage = 1, custQ = '';
+let customerSearchTimer = null;
 
-async function renderCustomersList(page = 1) {
+window.handleCustomerSearchInput = (value) => {
+  const next = (value || '').trim();
+  if (next === custQ) return;
+  if (customerSearchTimer) clearTimeout(customerSearchTimer);
+  customerSearchTimer = setTimeout(() => {
+    custQ = next;
+    renderCustomersList(1, { showLoading: false, preserveSearchFocus: true });
+  }, 180);
+};
+
+async function renderCustomersList(page = 1, opts = {}) {
+  const { showLoading = true, preserveSearchFocus = false } = opts;
   setActiveNav('customers');
   custPage = page;
-  loading();
+  if (showLoading) loading();
 
   const params = new URLSearchParams({ page, limit: 20 });
   if (custQ) params.set('q', custQ);
@@ -736,6 +748,7 @@ async function renderCustomersList(page = 1) {
     </div>
     <div class="controls">
       <input type="text" id="qInput" value="${escHtml(custQ)}" placeholder="Search by name, email, phone, or Shopify ID…"
+             oninput="handleCustomerSearchInput(this.value)"
              onkeydown="if(event.key==='Enter'){custQ=this.value.trim();renderCustomersList(1)}" style="min-width:260px;" />
       <button class="btn" onclick="custQ=document.getElementById('qInput').value.trim();renderCustomersList(1)">Search</button>
       <button class="btn-ghost btn-sm" onclick="custQ='';document.getElementById('qInput').value='';renderCustomersList(1)">Clear</button>
@@ -748,6 +761,15 @@ async function renderCustomersList(page = 1) {
     </div>
     ${pag}
   `);
+
+  if (preserveSearchFocus) {
+    const qInput = document.getElementById('qInput');
+    if (qInput) {
+      qInput.focus();
+      const len = qInput.value.length;
+      qInput.setSelectionRange(len, len);
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════

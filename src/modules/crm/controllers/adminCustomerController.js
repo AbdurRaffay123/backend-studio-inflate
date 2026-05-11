@@ -23,6 +23,7 @@ const list = async (req, res, next) => {
         { email: re },
         { phone: re },
         { shopifyCustomerId: re },
+        { tags: re },
       ];
     }
 
