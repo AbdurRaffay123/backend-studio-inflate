@@ -7,6 +7,11 @@ const customerService = require('../services/customerService');
 const { parsePagination, buildResponse } = require('../utils/paginate');
 
 const isMongoId = (id) => Types.ObjectId.isValid(id) && String(new Types.ObjectId(id)) === id;
+const parseDate = (value) => {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
 
 // GET /api/crm/admin/customers
 const list = async (req, res, next) => {
@@ -25,6 +30,20 @@ const list = async (req, res, next) => {
         { shopifyCustomerId: re },
         { tags: re },
       ];
+    }
+
+    const memberSinceFrom = parseDate(req.query.memberSinceFrom);
+    const memberSinceTo = parseDate(req.query.memberSinceTo);
+    if (memberSinceFrom || memberSinceTo) {
+      filter.memberSince = {};
+      if (memberSinceFrom) {
+        memberSinceFrom.setHours(0, 0, 0, 0);
+        filter.memberSince.$gte = memberSinceFrom;
+      }
+      if (memberSinceTo) {
+        memberSinceTo.setHours(23, 59, 59, 999);
+        filter.memberSince.$lte = memberSinceTo;
+      }
     }
 
     const [data, total] = await Promise.all([

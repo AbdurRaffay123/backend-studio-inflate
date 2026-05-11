@@ -697,7 +697,7 @@ window.saveConsultationUpdate = async (id) => {
 // ════════════════════════════════════════════════════════
 //  Customers List
 // ════════════════════════════════════════════════════════
-let custPage = 1, custQ = '';
+let custPage = 1, custQ = '', custMemberFrom = '', custMemberTo = '';
 let customerSearchTimer = null;
 
 window.handleCustomerSearchInput = (value) => {
@@ -718,6 +718,8 @@ async function renderCustomersList(page = 1, opts = {}) {
 
   const params = new URLSearchParams({ page, limit: 20 });
   if (custQ) params.set('q', custQ);
+  if (custMemberFrom) params.set('memberSinceFrom', custMemberFrom);
+  if (custMemberTo) params.set('memberSinceTo', custMemberTo);
 
   const json = await api(`/admin/customers?${params}`);
   if (!json) return;
@@ -750,8 +752,10 @@ async function renderCustomersList(page = 1, opts = {}) {
       <input type="text" id="qInput" value="${escHtml(custQ)}" placeholder="Search by name, email, phone, or Shopify ID…"
              oninput="handleCustomerSearchInput(this.value)"
              onkeydown="if(event.key==='Enter'){custQ=this.value.trim();renderCustomersList(1)}" style="min-width:260px;" />
+      <input type="date" id="memberFromInput" value="${escHtml(custMemberFrom)}" onchange="custMemberFrom=this.value;renderCustomersList(1)" title="Joined After (inclusive)" />
+      <input type="date" id="memberToInput" value="${escHtml(custMemberTo)}" onchange="custMemberTo=this.value;renderCustomersList(1)" title="Joined Before (inclusive)" />
       <button class="btn" onclick="custQ=document.getElementById('qInput').value.trim();renderCustomersList(1)">Search</button>
-      <button class="btn-ghost btn-sm" onclick="custQ='';document.getElementById('qInput').value='';renderCustomersList(1)">Clear</button>
+      <button class="btn-ghost btn-sm" onclick="custQ='';custMemberFrom='';custMemberTo='';document.getElementById('qInput').value='';renderCustomersList(1)">Clear</button>
     </div>
     <div class="table-wrap">
       <table>

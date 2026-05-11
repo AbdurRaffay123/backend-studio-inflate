@@ -82,4 +82,17 @@ describe('GET /api/crm/admin/customers', () => {
     expect(mockFind).toHaveBeenCalledWith({});
     expect(mockCountDocuments).toHaveBeenCalledWith({});
   });
+
+  it('applies memberSince from/to date filters when provided', async () => {
+    const res = await request(app)
+      .get('/api/crm/admin/customers?memberSinceFrom=2026-05-01&memberSinceTo=2026-05-31')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+
+    const filter = mockFind.mock.calls[0][0];
+    expect(filter.memberSince).toBeTruthy();
+    expect(filter.memberSince.$gte).toBeInstanceOf(Date);
+    expect(filter.memberSince.$lte).toBeInstanceOf(Date);
+  });
 });
