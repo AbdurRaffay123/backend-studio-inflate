@@ -99,6 +99,7 @@ const downloadAdminCsv = async (path, fallbackName) => {
 };
 
 window.downloadConsultationsExport = () => {
+  if (cFrom && cTo && cTo < cFrom) cTo = cFrom;
   const params = new URLSearchParams();
   if (cStatus) params.set('status', cStatus);
   if (cFrom) params.set('from', cFrom);
@@ -108,6 +109,7 @@ window.downloadConsultationsExport = () => {
 };
 
 window.downloadCustomersExport = () => {
+  if (custMemberFrom && custMemberTo && custMemberTo < custMemberFrom) custMemberTo = custMemberFrom;
   const params = new URLSearchParams();
   if (custQ) params.set('q', custQ);
   if (custMemberFrom) params.set('memberSinceFrom', custMemberFrom);
@@ -252,6 +254,7 @@ let cPage = 1, cStatus = '', cFrom = '', cTo = '';
 async function renderConsultationsList(page = 1) {
   setActiveNav('consultations');
   cPage = page;
+  if (cFrom && cTo && cTo < cFrom) cTo = cFrom;
   loading();
 
   const params = new URLSearchParams({ page, limit: 20 });
@@ -298,8 +301,8 @@ async function renderConsultationsList(page = 1) {
         <option value="completed" ${cStatus==='completed'?'selected':''}>Completed</option>
         <option value="cancelled" ${cStatus==='cancelled'?'selected':''}>Cancelled</option>
       </select>
-      <input type="date" id="fFrom" value="${cFrom}" placeholder="From" onchange="cFrom=this.value;renderConsultationsList(1)" />
-      <input type="date" id="fTo"   value="${cTo}"   placeholder="To"   onchange="cTo=this.value;renderConsultationsList(1)" />
+      <input type="date" id="fFrom" value="${cFrom}" max="${cTo || ''}" title="Created on or after" onchange="cFrom=this.value;if(cFrom&amp;&amp;cTo&amp;&amp;cTo&lt;cFrom)cTo=cFrom;renderConsultationsList(1)" />
+      <input type="date" id="fTo"   value="${cTo}"   min="${cFrom || ''}" title="Created on or before (must be on or after From)" onchange="cTo=this.value;if(cFrom&amp;&amp;cTo&amp;&amp;cTo&lt;cFrom)cTo=cFrom;renderConsultationsList(1)" />
       <button class="btn-ghost btn-sm" onclick="cStatus='';cFrom='';cTo='';renderConsultationsList(1)">Clear</button>
     </div>
     <div class="table-wrap">
@@ -511,6 +514,7 @@ async function renderCustomersList(page = 1, opts = {}) {
   const { showLoading = true, preserveSearchFocus = false } = opts;
   setActiveNav('customers');
   custPage = page;
+  if (custMemberFrom && custMemberTo && custMemberTo < custMemberFrom) custMemberTo = custMemberFrom;
   if (showLoading) loading();
 
   const params = new URLSearchParams({ page, limit: 20 });
@@ -555,11 +559,11 @@ async function renderCustomersList(page = 1, opts = {}) {
       </div>
       <div class="field" style="min-width:120px;">
         <label>From</label>
-        <input type="date" id="memberFromInput" value="${escHtml(custMemberFrom)}" onchange="custMemberFrom=this.value;renderCustomersList(1)" title="Joined After (inclusive)" />
+        <input type="date" id="memberFromInput" value="${escHtml(custMemberFrom)}" max="${custMemberTo ? escHtml(custMemberTo) : ''}" onchange="custMemberFrom=this.value;if(custMemberFrom&amp;&amp;custMemberTo&amp;&amp;custMemberTo&lt;custMemberFrom)custMemberTo=custMemberFrom;renderCustomersList(1)" title="Joined on or after (inclusive)" />
       </div>
       <div class="field" style="min-width:120px;">
         <label>To</label>
-        <input type="date" id="memberToInput" value="${escHtml(custMemberTo)}" onchange="custMemberTo=this.value;renderCustomersList(1)" title="Joined Before (inclusive)" />
+        <input type="date" id="memberToInput" value="${escHtml(custMemberTo)}" min="${custMemberFrom ? escHtml(custMemberFrom) : ''}" onchange="custMemberTo=this.value;if(custMemberFrom&amp;&amp;custMemberTo&amp;&amp;custMemberTo&lt;custMemberFrom)custMemberTo=custMemberFrom;renderCustomersList(1)" title="Joined on or before (must be on or after From)" />
       </div>
       <button class="btn" onclick="custQ=document.getElementById('qInput').value.trim();renderCustomersList(1)">Search</button>
       <button class="btn-ghost" onclick="custQ='';custMemberFrom='';custMemberTo='';document.getElementById('qInput').value='';renderCustomersList(1)">Clear</button>
