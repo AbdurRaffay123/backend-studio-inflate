@@ -393,15 +393,15 @@ const main = async () => {
   // ── Print clickable admin links ─────────────────────────────────────────
   const port = process.env.PORT || 3000;
   console.log('\n──── Open in admin (after starting the server) ────');
-  console.log(`  Consultations: http://localhost:${port}/admin/index.html#/consultations`);
-  console.log(`  Customers:     http://localhost:${port}/admin/index.html#/customers\n`);
+  console.log(`  Consultations: http://localhost:${port}/admin/crm-console.html#/consultations`);
+  console.log(`  Customers:     http://localhost:${port}/admin/crm-console.html#/customers\n`);
 
   console.log('Seeded consultation detail pages:');
   for (const c of createdIds) {
     const tag = c.existing ? '(existing)' : '(new)';
     console.log(
       `  [${c.status.padEnd(9)}] ${c.customer.padEnd(14)} ${tag.padEnd(10)} ` +
-      `http://localhost:${port}/admin/index.html#/consultations/${c.id}`
+      `http://localhost:${port}/admin/crm-console.html#/consultations/${c.id}`
     );
   }
 
@@ -410,7 +410,7 @@ const main = async () => {
     const encoded = encodeURIComponent(c.shopifyCustomerId);
     console.log(
       `  ${(c.firstName + ' ' + c.lastName).padEnd(16)} ` +
-      `http://localhost:${port}/admin/index.html#/customers/${encoded}`
+      `http://localhost:${port}/admin/crm-console.html#/customers/${encoded}`
     );
   }
 

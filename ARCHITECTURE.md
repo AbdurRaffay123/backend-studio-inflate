@@ -86,7 +86,10 @@ backend-inflate-studio/
 │       └── crm/
 │           ├── admin/                  # Static SPA served at /admin/*
 │           │   ├── login.html          # Vanilla JS — POSTs to /api/crm/admin/auth/login
-│           │   └── index.html          # Vanilla JS SPA — lists, details, edits
+│           │   ├── crm-console.html    # Vanilla JS SPA — Consultations + Customers (hash routes)
+│           │   ├── crm-console.css
+│           │   ├── login.css
+│           │   └── index.html          # Redirect stub → crm-console.html (bookmarks /admin/)
 │           ├── controllers/
 │           │   ├── healthController.js         # CRM readiness (db connection)
 │           │   ├── consultationController.js   # Public POST/GET/PATCH consultations
@@ -393,12 +396,12 @@ For 500 errors in production, `message` is replaced with
 
 ### 7.6 Admin SPA (`src/modules/crm/admin/`)
 
-Two static HTML files served by `express.static(...)`:
+Static HTML/CSS served by `express.static(...)`:
 
 - `login.html` — form posts to `/api/crm/admin/auth/login`; on success
   stores `adminToken` and `adminEmail` in `localStorage` and redirects
-  to `/admin/index.html`.
-- `index.html` — vanilla-JS SPA with hash-based routing:
+  to `/admin/crm-console.html`.
+- `crm-console.html` — vanilla-JS SPA with hash-based routing:
   - `#/consultations` — paginated list with status / date filters.
   - `#/consultations/:id` — detail + status update + add internal note.
   - `#/customers` — paginated list with search.
@@ -411,7 +414,7 @@ All admin-API calls go through a single `api(path, opts)` helper that:
 3. Auto-redirects to `/admin/login.html` on a 401.
 
 CSP is intentionally disabled in `helmet({contentSecurityPolicy: false})`
-because the SPA relies on inline `<script>` and `<style>`.
+because the SPA relies on inline `<script>` (styles live in `crm-console.css` / `login.css`).
 
 ---
 
@@ -557,11 +560,12 @@ if (crmEnabled) {
 
 That single line maps:
 - `GET /admin/login.html` → `src/modules/crm/admin/login.html`
-- `GET /admin/index.html` → `src/modules/crm/admin/index.html`
+- `GET /admin/crm-console.html` → `src/modules/crm/admin/crm-console.html`
+- `GET /admin/index.html` → redirect stub → `crm-console.html` (same folder)
 
 The SPA is **deliberately** unminified, no build step, no framework. To
-update copy, styles, or add a column: edit the HTML file directly. The
-inline JS in `index.html` is organized into commented sections (State &
+update copy, styles, or add a column: edit the HTML/CSS files directly. The
+inline JS in `crm-console.html` is organized into commented sections (State &
 Auth, Routing, Consultations List, Consultation Detail, Customers List,
 Customer Detail, Utilities) so search-and-replace is the primary
 modification model.

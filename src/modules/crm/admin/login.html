@@ -35,7 +35,7 @@
 <script>
   // If already logged in, skip to the app
   if (localStorage.getItem('adminToken')) {
-    window.location.replace('/admin/index.html');
+    window.location.replace('/admin/crm-console.html');
   }
 
   const form      = document.getElementById('loginForm');
@@ -71,7 +71,7 @@
       } else {
         localStorage.setItem('adminToken', json.data.token);
         localStorage.setItem('adminEmail', body.email);
-        window.location.replace('/admin/index.html');
+        window.location.replace('/admin/crm-console.html');
       }
     } catch {
       showError('Network error. Is the server running?');

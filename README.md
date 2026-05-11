@@ -44,7 +44,7 @@ backend-inflate-studio/
 │       │       ├── services/
 │       │       └── utils/
 │       └── crm/
-│           ├── admin/                # Static SPA (login.html, index.html)
+│           ├── admin/                # Static SPA (login.html, crm-console.html, …)
 │           ├── config/               # (per-module config — currently none)
 │           ├── controllers/
 │           ├── middleware/           # apiKey, jwtAuth, validate
@@ -117,7 +117,7 @@ so a phone on the same network can reach it.
 | GET   | `/api/crm/admin/consultations/:id`       | JWT |
 | PATCH | `/api/crm/admin/consultations/:id`       | JWT |
 
-The admin SPA is served from `/admin` (`/admin/login.html`, `/admin/index.html`).
+The admin SPA is served from `/admin` (`/admin/login.html`, `/admin/crm-console.html`). Visiting `/admin/` or `/admin/index.html` redirects to `crm-console.html` (hash preserved).
 
 ## Mobile app integration
 
