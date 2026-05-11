@@ -600,7 +600,7 @@ async function renderCustomerDetail(id) {
         <div class="field"><label>Email</label><div class="val">${c.email || '—'}</div></div>
         <div class="field"><label>Phone</label><div class="val">${c.phone || '—'}</div></div>
         <div class="field"><label>Member Since</label><div class="val">${fmt.date(c.memberSince)}</div></div>
-        <div class="field"><label>Tags</label><div class="val">${tagBadges(c.tags || [])}</div></div>
+        <div class="field"><label>Tags</label><div class="val" id="profileTagsVal">${tagBadges(c.tags || [])}</div></div>
       </div>
     </div>
 
@@ -662,6 +662,13 @@ window.saveCustomerUpdate = async (id) => {
   msg.style.display = 'inline';
   if (note) document.getElementById('custNoteInput').value = '';
   setTimeout(() => { msg.style.display = 'none'; }, 3000);
+
+  const profileTagsEl = document.getElementById('profileTagsVal');
+  if (profileTagsEl && json.data && Array.isArray(json.data.tags)) {
+    profileTagsEl.innerHTML = tagBadges(json.data.tags);
+    const tagsIn = document.getElementById('tagsInput');
+    if (tagsIn) tagsIn.value = json.data.tags.length ? json.data.tags.join(', ') : '';
+  }
 
   if (note && json.data?.notes) {
     document.getElementById('custNotesList').innerHTML =
