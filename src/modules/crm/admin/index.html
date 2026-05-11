@@ -180,6 +180,13 @@
     transition: background .12s, border-color .12s, color .12s;
   }
   .btn-ghost:hover { background: var(--brand-bg); border-color: var(--brand-soft); color: var(--brand); }
+  .btn-excel-download.btn-ghost:hover {
+    background: #245950;
+    border-color: #245950;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(36, 89, 80, .28);
+  }
   .btn-sm { padding: 5px 11px; font-size: 9.5pt; }
   .link-pill {
     display: inline-flex; align-items: center; gap: 6px;
@@ -568,7 +575,7 @@ async function renderConsultationsList(page = 1) {
   setContent(`
     <div class="topbar">
       <div><div class="page-title">Consultations</div><div class="page-sub">${pagination.total ?? 0} total records</div></div>
-      <button type="button" class="btn-ghost" onclick="downloadConsultationsExport()" title="CSV file opens in Microsoft Excel">Download Excel</button>
+      <button type="button" class="btn-ghost btn-excel-download" onclick="downloadConsultationsExport()" title="CSV file opens in Microsoft Excel">Download Excel</button>
     </div>
     <div class="controls">
       <select id="fStatus" onchange="cStatus=this.value;renderConsultationsList(1)">
@@ -813,7 +820,7 @@ async function renderCustomersList(page = 1, opts = {}) {
   setContent(`
     <div class="topbar">
       <div><div class="page-title">Customers</div><div class="page-sub">${pagination.total ?? 0} CRM profiles</div></div>
-      <button type="button" class="btn-ghost" onclick="downloadCustomersExport()" title="CSV file opens in Microsoft Excel">Download Excel</button>
+      <button type="button" class="btn-ghost btn-excel-download" onclick="downloadCustomersExport()" title="CSV file opens in Microsoft Excel">Download Excel</button>
     </div>
     <div class="controls controls-customers">
       <input type="text" id="qInput" value="${escHtml(custQ)}" placeholder="Search by name, email, phone, or Shopify ID…"
