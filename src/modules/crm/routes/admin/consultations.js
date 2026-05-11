@@ -12,6 +12,18 @@ const router = Router();
 router.use(jwtAuth);
 
 router.get(
+  '/export',
+  [
+    query('status').optional().isIn(STATUSES),
+    query('shopifyCustomerId').optional().isString().trim(),
+    query('from').optional().isISO8601(),
+    query('to').optional().isISO8601(),
+  ],
+  validate,
+  controller.exportCsv
+);
+
+router.get(
   '/',
   [
     query('status').optional().isIn(STATUSES),

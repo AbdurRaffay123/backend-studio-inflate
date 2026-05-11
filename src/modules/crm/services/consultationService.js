@@ -26,6 +26,10 @@ const listConsultations = async (filter, { skip, limit }) => {
   return { data, total };
 };
 
+/** Admin export: all rows matching filter (hard cap for safety). */
+const findConsultationsForExport = async (filter, { limit = 50_000 } = {}) =>
+  Consultation.find(filter).sort({ createdAt: -1 }).limit(limit).lean();
+
 const addInternalNote = async (id, note) => {
   return Consultation.findByIdAndUpdate(
     id,
@@ -47,6 +51,7 @@ module.exports = {
   getConsultationById,
   updateStatus,
   listConsultations,
+  findConsultationsForExport,
   addInternalNote,
   updateConsultation,
 };

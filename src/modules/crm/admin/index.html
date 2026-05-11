@@ -391,6 +391,47 @@ const api = async (path, opts = {}) => {
   return res.json();
 };
 
+const downloadAdminCsv = async (path, fallbackName) => {
+  const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } });
+  if (res.status === 401) {
+    localStorage.removeItem('adminToken');
+    window.location.replace('/admin/login.html');
+    return;
+  }
+  if (!res.ok) {
+    alert(`Download failed (${res.status})`);
+    return;
+  }
+  const cd = res.headers.get('Content-Disposition') || '';
+  const m = cd.match(/filename="([^"]+)"/);
+  const filename = m ? m[1] : fallbackName;
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+window.downloadConsultationsExport = () => {
+  const params = new URLSearchParams();
+  if (cStatus) params.set('status', cStatus);
+  if (cFrom) params.set('from', cFrom);
+  if (cTo) params.set('to', cTo);
+  const q = params.toString();
+  downloadAdminCsv(`/admin/consultations/export${q ? `?${q}` : ''}`, 'consultations-export.csv');
+};
+
+window.downloadCustomersExport = () => {
+  const params = new URLSearchParams();
+  if (custQ) params.set('q', custQ);
+  if (custMemberFrom) params.set('memberSinceFrom', custMemberFrom);
+  if (custMemberTo) params.set('memberSinceTo', custMemberTo);
+  const q = params.toString();
+  downloadAdminCsv(`/admin/customers/export${q ? `?${q}` : ''}`, 'customers-export.csv');
+};
+
 const logout = () => {
   localStorage.clear();
   window.location.replace('/admin/login.html');
@@ -527,6 +568,7 @@ async function renderConsultationsList(page = 1) {
   setContent(`
     <div class="topbar">
       <div><div class="page-title">Consultations</div><div class="page-sub">${pagination.total ?? 0} total records</div></div>
+      <button type="button" class="btn-ghost" onclick="downloadConsultationsExport()" title="CSV file opens in Microsoft Excel">Download Excel</button>
     </div>
     <div class="controls">
       <select id="fStatus" onchange="cStatus=this.value;renderConsultationsList(1)">
@@ -771,6 +813,7 @@ async function renderCustomersList(page = 1, opts = {}) {
   setContent(`
     <div class="topbar">
       <div><div class="page-title">Customers</div><div class="page-sub">${pagination.total ?? 0} CRM profiles</div></div>
+      <button type="button" class="btn-ghost" onclick="downloadCustomersExport()" title="CSV file opens in Microsoft Excel">Download Excel</button>
     </div>
     <div class="controls controls-customers">
       <input type="text" id="qInput" value="${escHtml(custQ)}" placeholder="Search by name, email, phone, or Shopify ID…"

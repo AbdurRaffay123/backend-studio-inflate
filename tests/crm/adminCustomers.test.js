@@ -95,4 +95,43 @@ describe('GET /api/crm/admin/customers', () => {
     expect(filter.memberSince.$gte).toBeInstanceOf(Date);
     expect(filter.memberSince.$lte).toBeInstanceOf(Date);
   });
+
+  it('GET /export returns CSV attachment', async () => {
+    mockFind.mockImplementation(() => ({
+      sort() { return this; },
+      skip() { return this; },
+      limit() { return this; },
+      lean: () =>
+        Promise.resolve([
+          {
+            _id:               '507f1f77bcf86cd799439012',
+            shopifyCustomerId: 'gid://shopify/Customer/2',
+            email:             'e@e.com',
+            firstName:         'F',
+            lastName:          'L',
+            phone:             '',
+            profilePictureUrl: '',
+            acceptsMarketing:  false,
+            memberSince:       new Date('2026-04-01T00:00:00.000Z'),
+            createdAt:         new Date('2026-04-02T00:00:00.000Z'),
+            updatedAt:         new Date('2026-04-03T00:00:00.000Z'),
+            tags:              ['VIP'],
+            addresses:         [],
+            defaultAddress:    null,
+            notes:             [],
+          },
+        ]),
+    }));
+
+    const res = await request(app)
+      .get('/api/crm/admin/customers/export')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/text\/csv/);
+    expect(res.headers['content-disposition']).toMatch(/attachment; filename="customers-export-/);
+    expect(res.text).toContain('shopifyCustomerId');
+    expect(res.text).toContain('e@e.com');
+    expect(res.text).toContain('VIP');
+  });
 });
