@@ -185,35 +185,61 @@ const shopifyCustomerIdDisplay = (raw) => {
   return /^\d+$/.test(s) ? s : s;
 };
 
-const displayName = (item = {}) =>
-  escHtml(
+const customerDisplayNameRaw = (item = {}) =>
+  (
     item.fullName ||
     `${item.firstName || ''} ${item.lastName || ''}`.trim() ||
     item.email ||
     shopifyCustomerIdDisplay(item.shopifyCustomerId) ||
-    'Customer'
-  );
+    '—'
+  ).trim();
+
+const displayName = (item = {}) => escHtml(customerDisplayNameRaw(item));
+
+/** Second line for list cells: never repeat the same text as the main line. */
+const customerSubtitle = (item = {}) => {
+  const name = (item.fullName || `${item.firstName || ''} ${item.lastName || ''}`.trim() || '').trim();
+  const email = (item.email || '').trim();
+  const phone = (item.phone || '').trim();
+  const idDisp = shopifyCustomerIdDisplay(item.shopifyCustomerId);
+
+  if (name) {
+    if (email) return email;
+    if (phone) return phone;
+    return idDisp || '';
+  }
+  if (email) {
+    if (phone) return phone;
+    return idDisp || '';
+  }
+  if (phone) return idDisp || '';
+  return '';
+};
 
 const initials = (item = {}) => {
   const source = (
     item.fullName ||
     `${item.firstName || ''} ${item.lastName || ''}`.trim() ||
     item.email ||
+    shopifyCustomerIdDisplay(item.shopifyCustomerId) ||
     'C'
   ).trim();
   const parts = source.split(/\s+/).filter(Boolean);
   return escHtml(((parts[0]?.[0] || 'C') + (parts[1]?.[0] || '')).toUpperCase());
 };
 
-const customerCell = (item = {}, sub = '') => `
+const customerCell = (item = {}) => {
+  const sub = customerSubtitle(item);
+  return `
   <div class="entity-cell">
     <span class="avatar">${initials(item)}</span>
     <div>
       <div class="entity-main">${displayName(item)}</div>
-      <div class="entity-sub">${escHtml(sub || item.email || shopifyCustomerIdDisplay(item.shopifyCustomerId) || '')}</div>
+      <div class="entity-sub">${sub ? escHtml(sub) : ''}</div>
     </div>
   </div>
 `;
+};
 
 const tagBadges = (tags = []) =>
   tags.map(t => `<span class="badge badge-booked">${escHtml(t)}</span>`).join(' ') || '—';
@@ -241,7 +267,7 @@ async function renderConsultationsList(page = 1) {
   const rows = data.length
     ? data.map(c => `
         <tr class="clickable" onclick="navigate('consultations','${c._id}')">
-          <td>${customerCell(c, c.email || shopifyCustomerIdDisplay(c.shopifyCustomerId))}</td>
+          <td>${customerCell(c)}</td>
           <td>${badge(c.status)}</td>
           <td>${fmt.type(c.type)}</td>
           <td><b>${fmt.date(c.scheduledDate)}</b><div class="td-muted">${c.scheduledTime || 'No time set'}</div></td>
@@ -279,7 +305,7 @@ async function renderConsultationsList(page = 1) {
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>Customer</th><th>Status</th><th>Type</th><th>Scheduled</th><th>Order</th><th>Price</th><th>Created</th>
+          <th>Name</th><th>Status</th><th>Type</th><th>Scheduled</th><th>Order</th><th>Price</th><th>Created</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -500,7 +526,7 @@ async function renderCustomersList(page = 1, opts = {}) {
   const rows = data.length
     ? data.map(c => `
         <tr class="clickable" onclick="navigate('customers','${c._id}')">
-          <td>${customerCell(c, shopifyCustomerIdDisplay(c.shopifyCustomerId))}</td>
+          <td>${customerCell(c)}</td>
           <td>${escHtml(c.email || '—')}</td>
           <td>${c.phone || '—'}</td>
           <td>${fmt.date(c.memberSince)}</td>
