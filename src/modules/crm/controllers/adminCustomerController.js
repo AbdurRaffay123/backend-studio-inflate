@@ -14,9 +14,16 @@ const list = async (req, res, next) => {
     const { page, limit, skip } = parsePagination(req.query);
 
     const filter = {};
-    if (req.query.q) {
-      const re = new RegExp(req.query.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-      filter.$or = [{ firstName: re }, { lastName: re }, { email: re }, { phone: re }];
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    if (q) {
+      const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [
+        { firstName: re },
+        { lastName: re },
+        { email: re },
+        { phone: re },
+        { shopifyCustomerId: re },
+      ];
     }
 
     const [data, total] = await Promise.all([

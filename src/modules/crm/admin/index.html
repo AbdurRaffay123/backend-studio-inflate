@@ -15,7 +15,9 @@
     --line:       #d8e2df;
     --bg:         #f7faf9;
     --white:      #ffffff;
-    --sidebar-w:  220px;
+    --shadow:     0 18px 45px rgba(29,37,48,.08);
+    --shadow-sm:  0 8px 22px rgba(29,37,48,.06);
+    --sidebar-w:  240px;
 
     --status-new:       #2b6cb0;
     --status-contacted: #c98a1f;
@@ -27,9 +29,13 @@
   body {
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: 10.5pt;
-    background: var(--bg);
+    line-height: 1.45;
+    background:
+      radial-gradient(circle at top left, rgba(175,204,198,.35), transparent 28rem),
+      linear-gradient(180deg, #fbfdfc 0%, var(--bg) 46%);
     color: var(--ink);
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
   a { color: var(--brand); text-decoration: none; }
   a:hover { text-decoration: underline; }
@@ -39,22 +45,24 @@
 
   .sidebar {
     width: var(--sidebar-w);
-    background: var(--white);
+    background: rgba(255,255,255,.92);
     border-right: 1px solid var(--line);
     display: flex;
     flex-direction: column;
     position: fixed;
     top: 0; bottom: 0; left: 0;
     z-index: 100;
+    backdrop-filter: blur(16px);
+    box-shadow: 10px 0 35px rgba(29,37,48,.04);
   }
   .sidebar-header {
-    padding: 20px 18px 16px;
+    padding: 24px 20px 18px;
     border-bottom: 1px solid var(--line);
   }
   .logo { display: flex; align-items: center; gap: 8px; }
   .logo-dot {
-    width: 11px; height: 11px;
-    background: var(--brand-soft);
+    width: 12px; height: 12px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-soft));
     border-radius: 50%;
     box-shadow: 0 0 0 3px rgba(175,204,198,.3);
     flex-shrink: 0;
@@ -62,20 +70,20 @@
   .logo-text { font-size: 11pt; font-weight: 700; color: var(--brand); letter-spacing: .04em; }
   .logo-sub  { font-size: 8pt; color: var(--muted); margin-top: 1px; }
 
-  .nav { flex: 1; padding: 12px 10px; }
+  .nav { flex: 1; padding: 14px 12px; }
   .nav-item {
     display: flex; align-items: center; gap: 9px;
-    padding: 9px 10px;
-    border-radius: 8px;
+    padding: 11px 12px;
+    border-radius: 11px;
     cursor: pointer;
     color: var(--muted);
     font-weight: 500;
-    margin-bottom: 2px;
-    transition: background .12s, color .12s;
+    margin-bottom: 5px;
+    transition: background .12s, color .12s, box-shadow .12s, transform .12s;
     border: none; background: none; width: 100%; text-align: left; font-size: 10.5pt;
   }
-  .nav-item:hover  { background: var(--brand-bg); color: var(--brand); }
-  .nav-item.active { background: var(--brand-bg); color: var(--brand); font-weight: 700; }
+  .nav-item:hover  { background: var(--brand-bg); color: var(--brand); transform: translateX(1px); }
+  .nav-item.active { background: var(--brand-bg); color: var(--brand); font-weight: 700; box-shadow: inset 3px 0 0 var(--brand); }
   .nav-icon { font-size: 14px; width: 18px; text-align: center; }
 
   .sidebar-footer {
@@ -93,60 +101,74 @@
   .main {
     margin-left: var(--sidebar-w);
     flex: 1;
-    padding: 28px 32px;
-    max-width: 1100px;
+    padding: 34px 40px 44px;
+    width: calc(100% - var(--sidebar-w));
   }
 
   /* ── Topbar ─────────────────────────────────────────────── */
   .topbar {
     display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 24px;
+    gap: 18px;
+    margin-bottom: 22px;
   }
-  .page-title { font-size: 18pt; font-weight: 700; color: var(--ink); }
+  .page-title { font-size: 21pt; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
   .page-sub   { color: var(--muted); font-size: 10pt; margin-top: 2px; }
 
   /* ── Filters / Controls ─────────────────────────────────── */
   .controls {
     display: flex; align-items: center; gap: 10px;
     margin-bottom: 18px; flex-wrap: wrap;
+    background: rgba(255,255,255,.78);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: var(--shadow-sm);
   }
   select, input[type="text"], input[type="date"], textarea {
-    padding: 8px 10px;
+    padding: 9px 11px;
     border: 1.5px solid var(--line);
-    border-radius: 7px;
+    border-radius: 9px;
     font-size: 10pt;
     color: var(--ink);
     background: var(--white);
     outline: none;
-    transition: border-color .12s;
+    transition: border-color .12s, box-shadow .12s;
   }
-  select:focus, input:focus, textarea:focus { border-color: var(--brand-soft); }
+  select:focus, input:focus, textarea:focus { border-color: var(--brand-soft); box-shadow: 0 0 0 3px rgba(175,204,198,.24); }
   .btn {
-    padding: 8px 16px;
+    padding: 9px 16px;
     background: var(--brand);
     color: #fff;
     font-size: 10pt;
     font-weight: 600;
-    border: none; border-radius: 7px; cursor: pointer;
-    transition: background .12s;
+    border: none; border-radius: 9px; cursor: pointer;
+    transition: background .12s, transform .12s, box-shadow .12s;
+    box-shadow: 0 8px 18px rgba(47,107,98,.18);
   }
-  .btn:hover   { background: #245950; }
+  .btn:hover   { background: #245950; transform: translateY(-1px); }
   .btn-ghost {
-    padding: 7px 14px;
-    background: none;
+    padding: 8px 14px;
+    background: var(--white);
     border: 1.5px solid var(--line);
-    border-radius: 7px;
+    border-radius: 9px;
     font-size: 10pt; font-weight: 500;
     color: var(--ink); cursor: pointer;
-    transition: background .12s;
+    transition: background .12s, border-color .12s, color .12s;
   }
-  .btn-ghost:hover { background: var(--brand-bg); }
+  .btn-ghost:hover { background: var(--brand-bg); border-color: var(--brand-soft); color: var(--brand); }
   .btn-sm { padding: 5px 11px; font-size: 9.5pt; }
+  .link-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 12px; padding: 8px 12px; border-radius: 999px;
+    background: var(--brand-bg); color: var(--brand); font-weight: 700;
+    font-size: 9.5pt;
+  }
+  .link-pill:hover { text-decoration: none; background: #e2f0ed; }
 
   /* ── Table ──────────────────────────────────────────────── */
-  .table-wrap { background: var(--white); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .table-wrap { background: var(--white); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-sm); }
   table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 10px 14px; text-align: left; vertical-align: top; }
+  th, td { padding: 13px 16px; text-align: left; vertical-align: middle; }
   th {
     background: var(--brand-bg);
     color: var(--brand);
@@ -156,11 +178,28 @@
   td { border-bottom: 1px solid var(--line); font-size: 10pt; }
   tr:last-child td { border-bottom: none; }
   tr.clickable:hover td { background: #f4f9f8; cursor: pointer; }
+  .td-muted { color: var(--muted); font-size: 9.5pt; }
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 9pt;
+    color: var(--muted);
+    word-break: break-all;
+  }
+  .entity-cell { display: flex; align-items: center; gap: 11px; min-width: 190px; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--brand-bg), #d8ebe7);
+    color: var(--brand); font-weight: 800; flex-shrink: 0;
+    border: 1px solid var(--line);
+  }
+  .entity-main { font-weight: 750; color: var(--ink); }
+  .entity-sub { color: var(--muted); font-size: 9.2pt; margin-top: 1px; word-break: break-all; }
 
   /* ── Status badge ───────────────────────────────────────── */
   .badge {
     display: inline-block;
-    padding: 3px 9px; border-radius: 999px;
+    padding: 4px 10px; border-radius: 999px;
     font-size: 8.5pt; font-weight: 700;
     letter-spacing: .04em; text-transform: capitalize;
   }
@@ -174,19 +213,33 @@
   .card {
     background: var(--white);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 20px 22px;
+    border-radius: 16px;
+    padding: 22px 24px;
     margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
   }
   .card h3 { font-size: 12pt; font-weight: 700; color: var(--ink); margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
   .field label { font-size: 8.5pt; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; display: block; margin-bottom: 3px; }
-  .field .val  { font-size: 10.5pt; color: var(--ink); }
+  .field .val  { font-size: 10.5pt; color: var(--ink); word-break: break-word; }
+  .detail-hero {
+    background: linear-gradient(135deg, var(--brand), #234f49);
+    color: #fff;
+    border-radius: 18px;
+    padding: 22px 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+  }
+  .detail-hero .page-title, .detail-hero .page-sub { color: #fff; }
+  .detail-hero .page-sub { opacity: .82; }
+  .detail-hero .badge { background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.25); }
+  .profile-hero { display: flex; align-items: center; gap: 14px; }
+  .profile-hero .avatar { width: 52px; height: 52px; font-size: 15pt; background: rgba(255,255,255,.16); color: #fff; border-color: rgba(255,255,255,.25); }
 
   /* ── Notes ──────────────────────────────────────────────── */
   .note-item {
-    padding: 10px 12px; border: 1px solid var(--line); border-radius: 7px;
+    padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px;
     margin-bottom: 8px; background: var(--bg);
   }
   .note-item .note-meta { font-size: 8.5pt; color: var(--muted); margin-bottom: 4px; }
@@ -195,20 +248,23 @@
   .add-note-form textarea { flex: 1; resize: vertical; min-height: 60px; }
 
   /* ── Photos ─────────────────────────────────────────────── */
-  .photo-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .photo-grid { display: flex; flex-wrap: wrap; gap: 12px; }
   .photo-thumb {
-    width: 90px; height: 90px; object-fit: cover;
-    border-radius: 8px; border: 1px solid var(--line);
+    width: 112px; height: 112px; object-fit: cover;
+    border-radius: 12px; border: 1px solid var(--line);
     cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform .12s, box-shadow .12s;
   }
+  .photo-thumb:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 
   /* ── Pagination ─────────────────────────────────────────── */
   .pagination { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
   .page-info  { color: var(--muted); font-size: 9.5pt; }
 
   /* ── Empty / Loading / Error ────────────────────────────── */
-  .empty { padding: 40px; text-align: center; color: var(--muted); }
-  .loading { padding: 40px; text-align: center; color: var(--muted); }
+  .empty { padding: 44px; text-align: center; color: var(--muted); }
+  .loading { padding: 70px 40px; text-align: center; color: var(--muted); }
   .spinner {
     display: inline-block; width: 20px; height: 20px;
     border: 2px solid var(--line); border-top-color: var(--brand);
@@ -218,14 +274,28 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .err-box {
     background: #fdf0ef; border: 1px solid #f5c6c2; color: #c0392b;
-    border-radius: 7px; padding: 10px 14px; margin-bottom: 14px; font-size: 10pt;
+    border-radius: 12px; padding: 13px 15px; margin-bottom: 14px; font-size: 10pt;
   }
 
   /* ── Back link ──────────────────────────────────────────── */
-  .back-link { font-size: 10pt; color: var(--brand); cursor: pointer; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 4px; }
+  .back-link { font-size: 10pt; color: var(--brand); cursor: pointer; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
   .back-link:hover { text-decoration: underline; }
 
   #content { min-height: 200px; }
+
+  @media (max-width: 900px) {
+    :root { --sidebar-w: 100%; }
+    .layout { display: block; }
+    .sidebar { position: relative; width: 100%; height: auto; bottom: auto; }
+    .nav { display: flex; gap: 8px; }
+    .nav-item { justify-content: center; }
+    .sidebar-footer { display: none; }
+    .main { margin-left: 0; width: 100%; padding: 22px 16px 32px; }
+    .topbar, .detail-hero { align-items: flex-start; flex-direction: column; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .table-wrap { overflow-x: auto; }
+    table { min-width: 760px; }
+  }
 </style>
 </head>
 <body>
@@ -317,14 +387,15 @@ const setActiveNav = (section) => {
 };
 
 function navigate(section, ...args) {
-  const hash = args.length ? `#/${section}/${args.join('/')}` : `#/${section}`;
+  const encodedArgs = args.map((arg) => encodeURIComponent(String(arg)));
+  const hash = encodedArgs.length ? `#/${section}/${encodedArgs.join('/')}` : `#/${section}`;
   window.location.hash = hash;
 }
 
 const ROUTES = [
-  [/^#\/consultations\/([^/]+)$/,   (_, id) => renderConsultationDetail(id)],
+  [/^#\/consultations\/([^/]+)$/,   (_, id) => renderConsultationDetail(decodeURIComponent(id))],
   [/^#\/consultations$/,             ()      => renderConsultationsList()],
-  [/^#\/customers\/([^/]+)$/,       (_, id) => renderCustomerDetail(id)],
+  [/^#\/customers\/(.+)$/,          (_, id) => renderCustomerDetail(decodeURIComponent(id))],
   [/^#\/customers$/,                 ()      => renderCustomersList()],
 ];
 
@@ -352,9 +423,42 @@ const fmt = {
 };
 
 const badge = (status) =>
-  `<span class="badge badge-${status}">${status}</span>`;
+  `<span class="badge badge-${escHtml(status)}">${escHtml(status)}</span>`;
 
 const errBox = (msg) => `<div class="err-box">${msg}</div>`;
+
+const displayName = (item = {}) =>
+  escHtml(
+    item.fullName ||
+    `${item.firstName || ''} ${item.lastName || ''}`.trim() ||
+    item.email ||
+    item.shopifyCustomerId ||
+    'Customer'
+  );
+
+const initials = (item = {}) => {
+  const source = (
+    item.fullName ||
+    `${item.firstName || ''} ${item.lastName || ''}`.trim() ||
+    item.email ||
+    'C'
+  ).trim();
+  const parts = source.split(/\s+/).filter(Boolean);
+  return escHtml(((parts[0]?.[0] || 'C') + (parts[1]?.[0] || '')).toUpperCase());
+};
+
+const customerCell = (item = {}, sub = '') => `
+  <div class="entity-cell">
+    <span class="avatar">${initials(item)}</span>
+    <div>
+      <div class="entity-main">${displayName(item)}</div>
+      <div class="entity-sub">${escHtml(sub || item.email || item.shopifyCustomerId || '')}</div>
+    </div>
+  </div>
+`;
+
+const tagBadges = (tags = []) =>
+  tags.map(t => `<span class="badge badge-booked">${escHtml(t)}</span>`).join(' ') || '—';
 
 // ════════════════════════════════════════════════════════
 //  Consultations List
@@ -379,11 +483,11 @@ async function renderConsultationsList(page = 1) {
   const rows = data.length
     ? data.map(c => `
         <tr class="clickable" onclick="navigate('consultations','${c._id}')">
-          <td><span class="mono" style="font-size:9pt;color:var(--muted)">${c._id.slice(-6)}</span></td>
+          <td>${customerCell(c, c.email || c.shopifyCustomerId)}</td>
           <td>${badge(c.status)}</td>
           <td>${fmt.type(c.type)}</td>
-          <td>${escHtml(c.shopifyCustomerId) || '—'}</td>
-          <td>${fmt.date(c.scheduledDate)}</td>
+          <td><b>${fmt.date(c.scheduledDate)}</b><div class="td-muted">${c.scheduledTime || 'No time set'}</div></td>
+          <td>${c.shopifyOrderName || c.shopifyOrderId || '—'}</td>
           <td>${fmt.usd(c.price)}</td>
           <td>${fmt.date(c.createdAt)}</td>
         </tr>`).join('')
@@ -416,7 +520,7 @@ async function renderConsultationsList(page = 1) {
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>ID</th><th>Status</th><th>Type</th><th>Customer ID</th><th>Scheduled</th><th>Price</th><th>Created</th>
+          <th>Customer</th><th>Status</th><th>Type</th><th>Scheduled</th><th>Order</th><th>Price</th><th>Created</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
@@ -455,10 +559,10 @@ async function renderConsultationDetail(id) {
 
   setContent(`
     <span class="back-link" onclick="navigate('consultations')">← All consultations</span>
-    <div class="topbar">
+    <div class="topbar detail-hero">
       <div>
-        <div class="page-title">Consultation <span style="color:var(--muted);font-size:13pt;">#${id.slice(-6)}</span></div>
-        <div class="page-sub">Created ${fmt.datetime(c.createdAt)}</div>
+        <div class="page-title">${displayName(c)}</div>
+        <div class="page-sub">Consultation #${id.slice(-6)} · ${fmt.type(c.type)} · Created ${fmt.datetime(c.createdAt)}</div>
       </div>
       <div>${badge(c.status)}</div>
     </div>
@@ -502,11 +606,11 @@ async function renderConsultationDetail(id) {
       <div class="card">
         <h3>Shopify</h3>
         <div class="grid-2">
-          <div class="field"><label>Customer ID</label><div class="val">${c.shopifyCustomerId || '—'}</div></div>
-          <div class="field"><label>Order ID</label><div class="val">${c.shopifyOrderId || '—'}</div></div>
+          <div class="field"><label>Customer ID</label><div class="val mono">${c.shopifyCustomerId || '—'}</div></div>
+          <div class="field"><label>Order ID</label><div class="val mono">${c.shopifyOrderId || '—'}</div></div>
           <div class="field"><label>Order #</label><div class="val">${c.shopifyOrderName || '—'}</div></div>
         </div>
-        ${c.shopifyCustomerId ? `<div style="margin-top:10px;"><a href="#" onclick="navigate('customers','${c.shopifyCustomerId}');return false;" style="font-size:9.5pt;">View customer profile →</a></div>` : ''}
+        ${c.shopifyCustomerId ? `<a href="#" onclick="navigate('customers','${c.shopifyCustomerId}');return false;" class="link-pill">View customer profile →</a>` : ''}
       </div>
     </div>
 
@@ -611,11 +715,11 @@ async function renderCustomersList(page = 1) {
   const rows = data.length
     ? data.map(c => `
         <tr class="clickable" onclick="navigate('customers','${c._id}')">
-          <td><b>${escHtml((c.firstName||'') + ' ' + (c.lastName||'')).trim() || '—'}</b></td>
+          <td>${customerCell(c, c.shopifyCustomerId)}</td>
           <td>${escHtml(c.email || '—')}</td>
           <td>${c.phone || '—'}</td>
           <td>${fmt.date(c.memberSince)}</td>
-          <td>${(c.tags||[]).map(t=>`<span class="badge badge-booked">${t}</span>`).join(' ') || '—'}</td>
+          <td>${tagBadges(c.tags || [])}</td>
         </tr>`).join('')
     : `<tr><td colspan="5"><div class="empty">No customers found.</div></td></tr>`;
 
@@ -631,9 +735,9 @@ async function renderCustomersList(page = 1) {
       <div><div class="page-title">Customers</div><div class="page-sub">${pagination.total ?? 0} CRM profiles</div></div>
     </div>
     <div class="controls">
-      <input type="text" id="qInput" value="${escHtml(custQ)}" placeholder="Search by name, email, phone…"
-             onkeydown="if(event.key==='Enter'){custQ=this.value;renderCustomersList(1)}" style="min-width:260px;" />
-      <button class="btn" onclick="custQ=document.getElementById('qInput').value;renderCustomersList(1)">Search</button>
+      <input type="text" id="qInput" value="${escHtml(custQ)}" placeholder="Search by name, email, phone, or Shopify ID…"
+             onkeydown="if(event.key==='Enter'){custQ=this.value.trim();renderCustomersList(1)}" style="min-width:260px;" />
+      <button class="btn" onclick="custQ=document.getElementById('qInput').value.trim();renderCustomersList(1)">Search</button>
       <button class="btn-ghost btn-sm" onclick="custQ='';document.getElementById('qInput').value='';renderCustomersList(1)">Clear</button>
     </div>
     <div class="table-wrap">
@@ -653,7 +757,16 @@ async function renderCustomerDetail(id) {
   setActiveNav('customers');
   loading();
 
-  const json = await api(`/admin/customers/${id}`);
+  // Shopify GIDs contain "/" (e.g. gid://shopify/Customer/123). Must encode as a
+  // single path segment or Express only sees "gid:" and the request never matches.
+  const encodedId = encodeURIComponent(id);
+  let json;
+  try {
+    json = await api(`/admin/customers/${encodedId}`);
+  } catch (e) {
+    setContent(errBox(e?.message || 'Request failed'));
+    return;
+  }
   if (!json) return;
   if (json.statusCode >= 400) { setContent(errBox(json.message)); return; }
 
@@ -682,10 +795,13 @@ async function renderCustomerDetail(id) {
 
   setContent(`
     <span class="back-link" onclick="navigate('customers')">← All customers</span>
-    <div class="topbar">
-      <div>
-        <div class="page-title">${escHtml((c.firstName||'') + ' ' + (c.lastName||'')).trim() || 'Customer'}</div>
-        <div class="page-sub">Shopify ID: ${c.shopifyCustomerId}</div>
+    <div class="topbar detail-hero">
+      <div class="profile-hero">
+        <span class="avatar">${initials(c)}</span>
+        <div>
+          <div class="page-title">${displayName(c)}</div>
+          <div class="page-sub">Shopify ID: ${c.shopifyCustomerId}</div>
+        </div>
       </div>
     </div>
 
@@ -698,7 +814,7 @@ async function renderCustomerDetail(id) {
         <div class="field"><label>Email</label><div class="val">${c.email || '—'}</div></div>
         <div class="field"><label>Phone</label><div class="val">${c.phone || '—'}</div></div>
         <div class="field"><label>Member Since</label><div class="val">${fmt.date(c.memberSince)}</div></div>
-        <div class="field"><label>Tags</label><div class="val">${(c.tags||[]).map(t=>`<span class="badge badge-booked">${escHtml(t)}</span>`).join(' ') || '—'}</div></div>
+        <div class="field"><label>Tags</label><div class="val">${tagBadges(c.tags || [])}</div></div>
       </div>
     </div>
 
