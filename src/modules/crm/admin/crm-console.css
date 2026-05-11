@@ -123,8 +123,8 @@ a:hover { text-decoration: underline; }
   flex-wrap: nowrap;
 }
 .controls-customers #qInput {
-  min-width: 702px; /* ~10% narrower than 780px */
-  width: min(61.2vw, 882px); /* ~10% narrower than min(68vw, 980px) */
+  min-width: 632px; /* ~10% under prior 702px */
+  width: min(55.1vw, 794px); /* ~10% under prior min(61.2vw, 882px) */
 }
 .controls-customers .field {
   margin-bottom: 0;
